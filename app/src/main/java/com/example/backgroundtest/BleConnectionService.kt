@@ -30,21 +30,26 @@ class BleConnectionService : Service() {
         (getSystemService(Context.BLUETOOTH_SERVICE) as BluetoothManager).adapter
     }
     private val leScanner by lazy { bluetoothAdapter.bluetoothLeScanner }
-    private val handler = Handler(Looper.getMainLooper())
+    private val handler = Handler(Looper.getMainLooper()) // Handler can still be useful for other tasks
 
     private var bluetoothGatt: BluetoothGatt? = null
     private var deviceAddress: String? = null
-    private var isScanningForReconnect = false
+    private var isAttemptingReconnect = false
 
     private val scanCallback = object : ScanCallback() {
         override fun onScanResult(callbackType: Int, result: ScanResult) {
+            // This is our event! The OS found the device.
             Log.i("BleService", "Dispositivo para reconexión encontrado. Conectando...")
+            // The scan stops automatically on first match with CALLBACK_TYPE_FIRST_MATCH,
+            // but we call stop just to be sure and to clean up our state.
             stopReconnectionScan()
             connectToDevice()
         }
 
         override fun onScanFailed(errorCode: Int) {
             Log.e("BleService", "Fallo en el escaneo de reconexión: $errorCode")
+            // If scan fails, maybe retry after a delay, but for now we just log it.
+            isAttemptingReconnect = false
         }
     }
 
@@ -53,9 +58,7 @@ class BleConnectionService : Service() {
             when (newState) {
                 BluetoothAdapter.STATE_CONNECTED -> {
                     Log.i("BleService", "Conectado al dispositivo: ${gatt.device.address}")
-                    if (isScanningForReconnect) {
-                        stopReconnectionScan()
-                    }
+                    isAttemptingReconnect = false // Successfully reconnected
                     ConnectionManager.updateState(ConnectionState.CONNECTED)
                 }
                 BluetoothAdapter.STATE_DISCONNECTED -> {
@@ -63,6 +66,7 @@ class BleConnectionService : Service() {
                     ConnectionManager.updateState(ConnectionState.DISCONNECTED)
                     gatt.close()
                     bluetoothGatt = null
+                    // Start the event-driven reconnection process
                     startReconnectionScan()
                 }
             }
@@ -83,46 +87,40 @@ class BleConnectionService : Service() {
     }
 
     private fun startReconnectionScan() {
-        if (isScanningForReconnect || deviceAddress == null) return
-        isScanningForReconnect = true
-        Log.i("BleService", "Iniciando búsqueda para reconexión automática...")
+        if (isAttemptingReconnect || deviceAddress == null) return
+        isAttemptingReconnect = true
+        Log.i("BleService", "Iniciando búsqueda de reconexión basada en eventos...")
 
         val scanFilters = listOf(ScanFilter.Builder().setDeviceAddress(deviceAddress).build())
-        val scanSettings = ScanSettings.Builder().setScanMode(ScanSettings.SCAN_MODE_BALANCED).build()
+        
+        // This is the key change: CALLBACK_TYPE_FIRST_MATCH
+        // We tell the OS to notify us only the first time it sees our device.
+        val scanSettings = ScanSettings.Builder()
+            .setScanMode(ScanSettings.SCAN_MODE_LOW_POWER) // Use low power for long-running background scans
+            .setCallbackType(ScanSettings.CALLBACK_TYPE_FIRST_MATCH)
+            .build()
 
-        handler.post(object : Runnable {
-            override fun run() {
-                if (!isScanningForReconnect) return
-
-                Log.d("BleService", "Buscando dispositivo $deviceAddress...")
-                leScanner.startScan(scanFilters, scanSettings, scanCallback)
-
-                handler.postDelayed({
-                    if (isScanningForReconnect) {
-                        leScanner.stopScan(scanCallback)
-                    }
-                }, 2000)
-
-                handler.postDelayed(this, 5000)
-            }
-        })
+        leScanner.startScan(scanFilters, scanSettings, scanCallback)
     }
 
     private fun stopReconnectionScan() {
-        if (!isScanningForReconnect) return
+        if (!isAttemptingReconnect) return
         Log.i("BleService", "Deteniendo búsqueda para reconexión.")
-        isScanningForReconnect = false
+        isAttemptingReconnect = false
         leScanner.stopScan(scanCallback)
-        handler.removeCallbacksAndMessages(null)
     }
 
     private fun connectToDevice() {
-        stopReconnectionScan()
+        if(isAttemptingReconnect) {
+            stopReconnectionScan()
+        }
         deviceAddress?.let { address ->
             ConnectionManager.updateState(ConnectionState.CONNECTING)
             try {
                 val device: BluetoothDevice = bluetoothAdapter.getRemoteDevice(address)
+                // Close previous gatt instance if it exists
                 bluetoothGatt?.close()
+                // Connect with a new gatt instance
                 bluetoothGatt = device.connectGatt(this, false, gattCallback)
             } catch (e: IllegalArgumentException) {
                 Log.e("BleService", "Dirección de dispositivo no válida.")
