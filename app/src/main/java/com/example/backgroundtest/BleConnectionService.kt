@@ -96,8 +96,9 @@ class BleConnectionService : Service() {
         // This is the key change: CALLBACK_TYPE_FIRST_MATCH
         // We tell the OS to notify us only the first time it sees our device.
         val scanSettings = ScanSettings.Builder()
-            .setScanMode(ScanSettings.SCAN_MODE_LOW_POWER) // Use low power for long-running background scans
+            .setScanMode(ScanSettings.SCAN_MODE_BALANCED) // Use low power for long-running background scans
             .setCallbackType(ScanSettings.CALLBACK_TYPE_FIRST_MATCH)
+            .setMatchMode(ScanSettings.MATCH_MODE_AGGRESSIVE)
             .build()
 
         leScanner.startScan(scanFilters, scanSettings, scanCallback)
