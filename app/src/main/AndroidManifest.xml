@@ -7,9 +7,13 @@
         android:name="android.hardware.bluetooth_le"
         android:required="true" />
 
+    <!-- General permission for foreground services, required from Android 9 (API 28) -->
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
+    <!-- Required for foreground services targeting connected devices on Android 14+ (API 34) -->
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE_CONNECTED_DEVICE" />
+
+
     <!-- Permissions for Android 12 (API 31) and newer -->
-    <!-- By adding neverForLocation, you assert that you don't derive physical location from the scan results. -->
-    <!-- This avoids the need for location permission on newer Android versions for BLE scanning. -->
     <uses-permission
         android:name="android.permission.BLUETOOTH_SCAN"
         android:usesPermissionFlags="neverForLocation"
@@ -25,8 +29,7 @@
         android:maxSdkVersion="30" />
     <uses-permission
         android:name="android.permission.ACCESS_FINE_LOCATION"
-        android:maxSdkVersion="30" /> <!-- Location is required for BLE scanning on older versions -->
-
+        android:maxSdkVersion="30" />
 
     <application
         android:allowBackup="true"
@@ -37,6 +40,13 @@
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
         android:theme="@style/Theme.BackgroundTest">
+
+        <service
+            android:name=".BleConnectionService"
+            android:enabled="true"
+            android:exported="false"
+            android:foregroundServiceType="connectedDevice" />
+
         <activity
             android:name=".MainActivity"
             android:exported="true"
