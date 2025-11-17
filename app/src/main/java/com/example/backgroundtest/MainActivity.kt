@@ -21,7 +21,6 @@ import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.runtime.mutableStateListOf
-import androidx.compose.runtime.remember
 import androidx.core.content.ContextCompat
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
@@ -93,11 +92,7 @@ class MainActivity : ComponentActivity() {
                                 val intent = Intent(this@MainActivity, BleConnectionService::class.java).apply {
                                     putExtra("DEVICE_ADDRESS", device.address)
                                 }
-                                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-                                    startForegroundService(intent)
-                                } else {
-                                    startService(intent)
-                                }
+                                startService(intent)
                                 navController.navigate("device_detail/${device.address}/${device.name}")
                             },
                             onScanClick = { if (hasRequiredPermissions()) scanLeDevice() else requestAppPermissions() }
@@ -144,10 +139,6 @@ class MainActivity : ComponentActivity() {
             requiredPermissions.add(Manifest.permission.ACCESS_FINE_LOCATION)
         }
 
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-            requiredPermissions.add(Manifest.permission.POST_NOTIFICATIONS)
-        }
-
         return requiredPermissions.all { permission ->
             ContextCompat.checkSelfPermission(this, permission) == PackageManager.PERMISSION_GRANTED
         }
@@ -161,10 +152,6 @@ class MainActivity : ComponentActivity() {
             permissionsToRequest.add(Manifest.permission.BLUETOOTH_CONNECT)
         } else {
             permissionsToRequest.add(Manifest.permission.ACCESS_FINE_LOCATION)
-        }
-
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-            permissionsToRequest.add(Manifest.permission.POST_NOTIFICATIONS)
         }
 
         if (permissionsToRequest.isNotEmpty()) {

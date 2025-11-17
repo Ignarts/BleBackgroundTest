@@ -19,13 +19,6 @@ los permisos que necesita y las características de hardware que requiere.
     PERMISOS
     -->
 
-    <!-- === Permisos para Servicios en Primer Plano (Foreground Services) === -->
-    <!-- Permiso general para ejecutar un servicio en primer plano. Obligatorio desde Android 9 (API 28). -->
-    <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
-    <!-- Permiso específico para servicios que interactúan con dispositivos conectados. Obligatorio en Android 14+ (API 34). -->
-    <uses-permission android:name="android.permission.FOREGROUND_SERVICE_CONNECTED_DEVICE" />
-
-
     <!-- === Permisos para Bluetooth en Android 12 (API 31) y SUPERIORES === -->
     <!-- Permiso para escanear dispositivos BLE. -->
     <uses-permission
@@ -52,7 +45,6 @@ los permisos que necesita y las características de hardware que requiere.
     <!--
     DEFINICIÓN DE LA APLICACIÓN Y SUS COMPONENTES
     -->
-    <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
     <application
         android:allowBackup="true"
         android:dataExtractionRules="@xml/data_extraction_rules"
@@ -67,8 +59,7 @@ los permisos que necesita y las características de hardware que requiere.
         <service
             android:name=".BleConnectionService"
             android:enabled="true"
-            android:exported="false"
-            android:foregroundServiceType="connectedDevice" />
+            android:exported="false" />
 
         <!-- Declaración de la Actividad Principal. -->
         <activity
