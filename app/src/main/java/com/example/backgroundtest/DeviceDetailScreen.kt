@@ -1,3 +1,6 @@
+// FICHERO: DeviceDetailScreen.kt
+// DESCRIPCIÓN: Define la interfaz de usuario que muestra los detalles y el estado de conexión de un dispositivo BLE específico.
+
 package com.example.backgroundtest
 
 import androidx.compose.foundation.layout.Arrangement
@@ -17,12 +20,22 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 
+/**
+ * Pantalla que muestra el estado de la conexión con un dispositivo BLE.
+ * Se actualiza en tiempo real gracias al `ViewModel` y al `StateFlow`.
+ *
+ * @param deviceName El nombre del dispositivo al que estamos conectados.
+ * @param onDisconnect Lambda que se ejecuta cuando el usuario pulsa el botón de desconectar.
+ * @param viewModel El ViewModel que proporciona el estado de la conexión. Se inyecta automáticamente por Hilt o por `viewModel()`.
+ */
 @Composable
 fun DeviceDetailScreen(
     deviceName: String?,
     onDisconnect: () -> Unit,
     viewModel: DeviceDetailViewModel = viewModel()
 ) {
+    // Se suscribe al StateFlow del ViewModel. Cada vez que el estado cambia, esta variable se actualiza
+    // y la UI se recompone automáticamente para reflejar el nuevo estado.
     val connectionState by viewModel.connectionState.collectAsState()
 
     Column(
@@ -33,8 +46,10 @@ fun DeviceDetailScreen(
         Text("Dispositivo: ${deviceName ?: "Desconocido"}", fontSize = 20.sp)
         Spacer(modifier = Modifier.height(16.dp))
 
+        // El bloque `when` reacciona al estado de conexión actual para mostrar la UI correspondiente.
         when (connectionState) {
             ConnectionState.CONNECTING -> {
+                // Muestra un indicador de progreso mientras se establece la conexión.
                 CircularProgressIndicator()
                 Spacer(modifier = Modifier.height(8.dp))
                 Text("Estado: Conectando...", fontSize = 20.sp)
@@ -43,9 +58,10 @@ fun DeviceDetailScreen(
                 Text("Estado: Conectado", fontSize = 20.sp)
             }
             ConnectionState.DISCONNECTED -> {
-                Text("Estado: Desconectado", fontSize = 20.sp)
+                // Este estado también gestiona la reconexión automática.
+                Text("Estado: Desconectado. Intentando reconectar...", fontSize = 20.sp)
             }
-             ConnectionState.DISCONNECTING -> {
+            ConnectionState.DISCONNECTING -> {
                 Text("Estado: Desconectando...", fontSize = 20.sp)
             }
         }

@@ -1,0 +1,1806 @@
+This file is a merged representation of the entire codebase, combined into a single document by Repomix.
+
+<file_summary>
+This section contains a summary of this file.
+
+<purpose>
+This file contains a packed representation of the entire repository's contents.
+It is designed to be easily consumable by AI systems for analysis, code review,
+or other automated processes.
+</purpose>
+
+<file_format>
+The content is organized as follows:
+1. This summary section
+2. Repository information
+3. Directory structure
+4. Repository files (if enabled)
+5. Multiple file entries, each consisting of:
+  - File path as an attribute
+  - Full contents of the file
+</file_format>
+
+<usage_guidelines>
+- This file should be treated as read-only. Any changes should be made to the
+  original repository files, not this packed version.
+- When processing this file, use the file path to distinguish
+  between different files in the repository.
+- Be aware that this file may contain sensitive information. Handle it with
+  the same level of security as you would the original repository.
+</usage_guidelines>
+
+<notes>
+- Some files may have been excluded based on .gitignore rules and Repomix's configuration
+- Binary files are not included in this packed representation. Please refer to the Repository Structure section for a complete list of file paths, including binary files
+- Files matching patterns in .gitignore are excluded
+- Files matching default ignore patterns are excluded
+- Files are sorted by Git change count (files with more changes are at the bottom)
+</notes>
+
+</file_summary>
+
+<directory_structure>
+app/
+  src/
+    androidTest/
+      java/
+        com/
+          example/
+            backgroundtest/
+              ExampleInstrumentedTest.kt
+    main/
+      java/
+        com/
+          example/
+            backgroundtest/
+              ui/
+                theme/
+                  Color.kt
+                  Theme.kt
+                  Type.kt
+              BleConnectionService.kt
+              ConnectionManager.kt
+              DeviceDetailScreen.kt
+              DeviceDetailViewModel.kt
+              DeviceListScreen.kt
+              MainActivity.kt
+      res/
+        drawable/
+          ic_launcher_background.xml
+          ic_launcher_foreground.xml
+        mipmap-anydpi-v26/
+          ic_launcher_round.xml
+          ic_launcher.xml
+        values/
+          colors.xml
+          strings.xml
+          themes.xml
+        xml/
+          backup_rules.xml
+          data_extraction_rules.xml
+      AndroidManifest.xml
+    test/
+      java/
+        com/
+          example/
+            backgroundtest/
+              ExampleUnitTest.kt
+  .gitignore
+  build.gradle.kts
+  proguard-rules.pro
+gradle/
+  wrapper/
+    gradle-wrapper.properties
+  libs.versions.toml
+build.gradle.kts
+gradle.properties
+gradlew
+gradlew.bat
+local.properties
+settings.gradle.kts
+</directory_structure>
+
+<files>
+This section contains the contents of the repository's files.
+
+<file path="app/src/androidTest/java/com/example/backgroundtest/ExampleInstrumentedTest.kt">
+package com.example.backgroundtest
+
+import androidx.test.platform.app.InstrumentationRegistry
+import androidx.test.ext.junit.runners.AndroidJUnit4
+
+import org.junit.Test
+import org.junit.runner.RunWith
+
+import org.junit.Assert.*
+
+/**
+ * Instrumented test, which will execute on an Android device.
+ *
+ * See [testing documentation](http://d.android.com/tools/testing).
+ */
+@RunWith(AndroidJUnit4::class)
+class ExampleInstrumentedTest {
+    @Test
+    fun useAppContext() {
+        // Context of the app under test.
+        val appContext = InstrumentationRegistry.getInstrumentation().targetContext
+        assertEquals("com.example.backgroundtest", appContext.packageName)
+    }
+}
+</file>
+
+<file path="app/src/main/java/com/example/backgroundtest/ui/theme/Color.kt">
+package com.example.backgroundtest.ui.theme
+
+import androidx.compose.ui.graphics.Color
+
+val Purple80 = Color(0xFFD0BCFF)
+val PurpleGrey80 = Color(0xFFCCC2DC)
+val Pink80 = Color(0xFFEFB8C8)
+
+val Purple40 = Color(0xFF6650a4)
+val PurpleGrey40 = Color(0xFF625b71)
+val Pink40 = Color(0xFF7D5260)
+</file>
+
+<file path="app/src/main/java/com/example/backgroundtest/ui/theme/Theme.kt">
+package com.example.backgroundtest.ui.theme
+
+import android.app.Activity
+import android.os.Build
+import androidx.compose.foundation.isSystemInDarkTheme
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.darkColorScheme
+import androidx.compose.material3.dynamicDarkColorScheme
+import androidx.compose.material3.dynamicLightColorScheme
+import androidx.compose.material3.lightColorScheme
+import androidx.compose.runtime.Composable
+import androidx.compose.ui.platform.LocalContext
+
+private val DarkColorScheme = darkColorScheme(
+    primary = Purple80,
+    secondary = PurpleGrey80,
+    tertiary = Pink80
+)
+
+private val LightColorScheme = lightColorScheme(
+    primary = Purple40,
+    secondary = PurpleGrey40,
+    tertiary = Pink40
+
+    /* Other default colors to override
+    background = Color(0xFFFFFBFE),
+    surface = Color(0xFFFFFBFE),
+    onPrimary = Color.White,
+    onSecondary = Color.White,
+    onTertiary = Color.White,
+    onBackground = Color(0xFF1C1B1F),
+    onSurface = Color(0xFF1C1B1F),
+    */
+)
+
+@Composable
+fun BackgroundTestTheme(
+    darkTheme: Boolean = isSystemInDarkTheme(),
+    // Dynamic color is available on Android 12+
+    dynamicColor: Boolean = true,
+    content: @Composable () -> Unit
+) {
+    val colorScheme = when {
+      dynamicColor && Build.VERSION.SDK_INT >= Build.VERSION_CODES.S -> {
+        val context = LocalContext.current
+        if (darkTheme) dynamicDarkColorScheme(context) else dynamicLightColorScheme(context)
+      }
+      darkTheme -> DarkColorScheme
+      else -> LightColorScheme
+    }
+
+    MaterialTheme(
+      colorScheme = colorScheme,
+      typography = Typography,
+      content = content
+    )
+}
+</file>
+
+<file path="app/src/main/java/com/example/backgroundtest/ui/theme/Type.kt">
+package com.example.backgroundtest.ui.theme
+
+import androidx.compose.material3.Typography
+import androidx.compose.ui.text.TextStyle
+import androidx.compose.ui.text.font.FontFamily
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.unit.sp
+
+// Set of Material typography styles to start with
+val Typography = Typography(
+    bodyLarge = TextStyle(
+        fontFamily = FontFamily.Default,
+        fontWeight = FontWeight.Normal,
+        fontSize = 16.sp,
+        lineHeight = 24.sp,
+        letterSpacing = 0.5.sp
+    )
+    /* Other default text styles to override
+    titleLarge = TextStyle(
+        fontFamily = FontFamily.Default,
+        fontWeight = FontWeight.Normal,
+        fontSize = 22.sp,
+        lineHeight = 28.sp,
+        letterSpacing = 0.sp
+    ),
+    labelSmall = TextStyle(
+        fontFamily = FontFamily.Default,
+        fontWeight = FontWeight.Medium,
+        fontSize = 11.sp,
+        lineHeight = 16.sp,
+        letterSpacing = 0.5.sp
+    )
+    */
+)
+</file>
+
+<file path="app/src/main/java/com/example/backgroundtest/ConnectionManager.kt">
+// FICHERO: ConnectionManager.kt
+// DESCRIPCIÓN: Objeto singleton que actúa como la "única fuente de verdad" para el estado de la conexión BLE.
+
+package com.example.backgroundtest
+
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.asStateFlow
+
+/**
+ * Define los posibles estados de una conexión BLE.
+ * Esto permite a la UI reaccionar de forma declarativa a los cambios.
+ */
+enum class ConnectionState {
+    DISCONNECTED, // Desconectado, también puede indicar que se está intentando reconectar.
+    CONNECTING,   // Conectando activamente por primera vez.
+    CONNECTED,    // Conexión establecida y activa.
+    DISCONNECTING // Se está procesando una desconexión manual.
+}
+
+/**
+ * Singleton para gestionar el estado de la conexión de forma centralizada.
+ * Al ser un `object`, solo existe una instancia de ConnectionManager en toda la aplicación.
+ * Esto permite que componentes dispares (como un Service en segundo plano y una Activity en primer plano)
+ * compartan y reaccionen a la misma información de estado de forma segura.
+ */
+object ConnectionManager {
+    // `_connectionState` es un StateFlow mutable y privado. Solo el propio ConnectionManager
+    // puede cambiar su valor. Comienza en estado DISCONNECTED.
+    private val _connectionState = MutableStateFlow(ConnectionState.DISCONNECTED)
+
+    // `connectionState` es la versión pública e inmutable del StateFlow. Otros componentes
+    // pueden suscribirse a él para recibir actualizaciones, pero no pueden modificar su valor.
+    val connectionState = _connectionState.asStateFlow()
+
+    /**
+     * Método para actualizar el estado de la conexión.
+     * Es llamado desde el `BleConnectionService` para notificar a toda la app
+     * sobre cambios en la conexión (ej. conectado, desconectado, etc.).
+     * @param newState El nuevo estado de la conexión.
+     */
+    fun updateState(newState: ConnectionState) {
+        _connectionState.value = newState
+    }
+}
+</file>
+
+<file path="app/src/main/java/com/example/backgroundtest/DeviceDetailScreen.kt">
+// FICHERO: DeviceDetailScreen.kt
+// DESCRIPCIÓN: Define la interfaz de usuario que muestra los detalles y el estado de conexión de un dispositivo BLE específico.
+
+package com.example.backgroundtest
+
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.height
+import androidx.compose.material3.Button
+import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.Text
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
+import androidx.lifecycle.viewmodel.compose.viewModel
+
+/**
+ * Pantalla que muestra el estado de la conexión con un dispositivo BLE.
+ * Se actualiza en tiempo real gracias al `ViewModel` y al `StateFlow`.
+ *
+ * @param deviceName El nombre del dispositivo al que estamos conectados.
+ * @param onDisconnect Lambda que se ejecuta cuando el usuario pulsa el botón de desconectar.
+ * @param viewModel El ViewModel que proporciona el estado de la conexión. Se inyecta automáticamente por Hilt o por `viewModel()`.
+ */
+@Composable
+fun DeviceDetailScreen(
+    deviceName: String?,
+    onDisconnect: () -> Unit,
+    viewModel: DeviceDetailViewModel = viewModel()
+) {
+    // Se suscribe al StateFlow del ViewModel. Cada vez que el estado cambia, esta variable se actualiza
+    // y la UI se recompone automáticamente para reflejar el nuevo estado.
+    val connectionState by viewModel.connectionState.collectAsState()
+
+    Column(
+        modifier = Modifier.fillMaxSize(),
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.Center
+    ) {
+        Text("Dispositivo: ${deviceName ?: "Desconocido"}", fontSize = 20.sp)
+        Spacer(modifier = Modifier.height(16.dp))
+
+        // El bloque `when` reacciona al estado de conexión actual para mostrar la UI correspondiente.
+        when (connectionState) {
+            ConnectionState.CONNECTING -> {
+                // Muestra un indicador de progreso mientras se establece la conexión.
+                CircularProgressIndicator()
+                Spacer(modifier = Modifier.height(8.dp))
+                Text("Estado: Conectando...", fontSize = 20.sp)
+            }
+            ConnectionState.CONNECTED -> {
+                Text("Estado: Conectado", fontSize = 20.sp)
+            }
+            ConnectionState.DISCONNECTED -> {
+                // Este estado también gestiona la reconexión automática.
+                Text("Estado: Desconectado. Intentando reconectar...", fontSize = 20.sp)
+            }
+            ConnectionState.DISCONNECTING -> {
+                Text("Estado: Desconectando...", fontSize = 20.sp)
+            }
+        }
+
+        Spacer(modifier = Modifier.height(32.dp))
+        Button(onClick = onDisconnect) {
+            Text("Desconectar y Volver")
+        }
+    }
+}
+</file>
+
+<file path="app/src/main/java/com/example/backgroundtest/DeviceDetailViewModel.kt">
+// FICHERO: DeviceDetailViewModel.kt
+// DESCRIPCIÓN: ViewModel para la pantalla `DeviceDetailScreen`.
+// Su única responsabilidad es actuar como puente entre la UI y el gestor de estado de la conexión (`ConnectionManager`).
+
+package com.example.backgroundtest
+
+import androidx.lifecycle.ViewModel
+import androidx.lifecycle.viewModelScope
+import kotlinx.coroutines.flow.SharingStarted
+import kotlinx.coroutines.flow.stateIn
+
+class DeviceDetailViewModel : ViewModel() {
+
+    /**
+     * Expone el `StateFlow` del `ConnectionManager` para que la UI de Compose pueda observarlo.
+     * Utiliza `stateIn` para convertir un Flow en un StateFlow que es consciente del ciclo de vida del ViewModel.
+     */
+    val connectionState = ConnectionManager.connectionState.stateIn(
+        // El `viewModelScope` asegura que la corrutina se cancele automáticamente cuando el ViewModel se destruya.
+        scope = viewModelScope,
+        // `SharingStarted.WhileSubscribed(5000)`: El flujo se mantiene activo mientras haya al menos un
+        // observador (la UI). Si la UI se va (ej. el usuario rota la pantalla o sale de la app),
+        // el flujo se mantiene activo durante 5 segundos más antes de detenerse. Si la UI vuelve
+        // en ese tiempo, se reconecta sin perder el estado.
+        started = SharingStarted.WhileSubscribed(5000),
+        // El valor inicial del flujo es el valor actual que tenga el ConnectionManager.
+        initialValue = ConnectionManager.connectionState.value
+    )
+}
+</file>
+
+<file path="app/src/main/java/com/example/backgroundtest/DeviceListScreen.kt">
+// FICHERO: DeviceListScreen.kt
+// DESCRIPCIÓN: Define la interfaz de usuario para mostrar la lista de dispositivos BLE encontrados.
+
+package com.example.backgroundtest
+
+import android.annotation.SuppressLint
+import android.bluetooth.BluetoothDevice
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.*
+import androidx.compose.runtime.Composable
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
+
+/**
+ * Pantalla principal que muestra la lista de dispositivos BLE descubiertos y un botón para escanear.
+ *
+ * @param devices Lista de dispositivos Bluetooth (`BluetoothDevice`) para mostrar.
+ * @param onDeviceClick Lambda que se ejecuta cuando el usuario pulsa sobre un dispositivo de la lista.
+ * @param onScanClick Lambda que se ejecuta cuando el usuario pulsa el botón de escanear.
+ */
+@SuppressLint("MissingPermission")
+@Composable
+fun DeviceListScreen(
+    devices: List<BluetoothDevice>,
+    onDeviceClick: (BluetoothDevice) -> Unit,
+    onScanClick: () -> Unit
+) {
+    // Contenedor principal que organiza los elementos verticalmente.
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .padding(horizontal = 25.dp, vertical = 40.dp)
+    ) {
+        // --- SECCIÓN DE CONTROL DE ESCANEO ---
+        Text(
+            "Control de Escaneo",
+            fontSize = 22.sp,
+            fontWeight = FontWeight.Bold,
+        )
+        Spacer(modifier = Modifier.height(8.dp))
+        Button(
+            onClick = onScanClick,
+            modifier = Modifier.fillMaxWidth(),
+            shape = RoundedCornerShape(12.dp),
+            colors = ButtonDefaults.buttonColors(
+                containerColor = Color(0xFF007BFF),
+                contentColor = Color.White
+            )
+        ) {
+            Text("Escanear Dispositivos BLE", fontSize = 16.sp)
+        }
+
+        // Espacio para separar visualmente el botón de la lista de dispositivos.
+        Spacer(modifier = Modifier.height(24.dp))
+
+        // --- SECCIÓN DE LA LISTA DE DISPOSITIVOS ---
+        Text(
+            "Dispositivos Encontrados",
+            fontSize = 22.sp,
+            fontWeight = FontWeight.Bold
+        )
+        Spacer(modifier = Modifier.height(8.dp))
+        // `LazyColumn` es el equivalente a RecyclerView en Compose.
+        // Es eficiente para mostrar listas largas sin consumir toda la memoria.
+        LazyColumn {
+            items(devices) { device ->
+                DeviceItem(device = device, onDeviceClick = onDeviceClick)
+            }
+        }
+    }
+}
+
+/**
+ * Representa un único elemento (una tarjeta) en la lista de dispositivos.
+ *
+ * @param device El objeto `BluetoothDevice` que se va a mostrar.
+ * @param onDeviceClick Lambda que se ejecuta al hacer clic en la tarjeta.
+ */
+@SuppressLint("MissingPermission")
+@Composable
+fun DeviceItem(device: BluetoothDevice, onDeviceClick: (BluetoothDevice) -> Unit) {
+    Card(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(vertical = 4.dp)
+            .clickable { onDeviceClick(device) }, // Permite hacer clic en toda la tarjeta.
+        shape = RoundedCornerShape(8.dp),
+        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp),
+        colors = CardDefaults.cardColors(containerColor = Color.White)
+    ) {
+        Column(modifier = Modifier.padding(16.dp)) {
+            // Muestra el nombre del dispositivo. Si es nulo, muestra la dirección MAC.
+            // Esto asegura que siempre veamos una identificación para cada dispositivo.
+            Text(
+                text = device.name ?: device.address,
+                fontWeight = FontWeight.Bold,
+                fontSize = 18.sp,
+                color = Color.Black
+            )
+            Spacer(modifier = Modifier.height(4.dp))
+            // La dirección MAC siempre se muestra como información secundaria.
+            // Es útil para identificar dispositivos que puedan tener nombres genéricos o duplicados.
+            Text(
+                text = device.address,
+                fontSize = 14.sp,
+                color = Color.Gray
+            )
+        }
+    }
+}
+</file>
+
+<file path="app/src/main/res/drawable/ic_launcher_background.xml">
+<?xml version="1.0" encoding="utf-8"?>
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="108dp"
+    android:height="108dp"
+    android:viewportWidth="108"
+    android:viewportHeight="108">
+    <path
+        android:fillColor="#3DDC84"
+        android:pathData="M0,0h108v108h-108z" />
+    <path
+        android:fillColor="#00000000"
+        android:pathData="M9,0L9,108"
+        android:strokeWidth="0.8"
+        android:strokeColor="#33FFFFFF" />
+    <path
+        android:fillColor="#00000000"
+        android:pathData="M19,0L19,108"
+        android:strokeWidth="0.8"
+        android:strokeColor="#33FFFFFF" />
+    <path
+        android:fillColor="#00000000"
+        android:pathData="M29,0L29,108"
+        android:strokeWidth="0.8"
+        android:strokeColor="#33FFFFFF" />
+    <path
+        android:fillColor="#00000000"
+        android:pathData="M39,0L39,108"
+        android:strokeWidth="0.8"
+        android:strokeColor="#33FFFFFF" />
+    <path
+        android:fillColor="#00000000"
+        android:pathData="M49,0L49,108"
+        android:strokeWidth="0.8"
+        android:strokeColor="#33FFFFFF" />
+    <path
+        android:fillColor="#00000000"
+        android:pathData="M59,0L59,108"
+        android:strokeWidth="0.8"
+        android:strokeColor="#33FFFFFF" />
+    <path
+        android:fillColor="#00000000"
+        android:pathData="M69,0L69,108"
+        android:strokeWidth="0.8"
+        android:strokeColor="#33FFFFFF" />
+    <path
+        android:fillColor="#00000000"
+        android:pathData="M79,0L79,108"
+        android:strokeWidth="0.8"
+        android:strokeColor="#33FFFFFF" />
+    <path
+        android:fillColor="#00000000"
+        android:pathData="M89,0L89,108"
+        android:strokeWidth="0.8"
+        android:strokeColor="#33FFFFFF" />
+    <path
+        android:fillColor="#00000000"
+        android:pathData="M99,0L99,108"
+        android:strokeWidth="0.8"
+        android:strokeColor="#33FFFFFF" />
+    <path
+        android:fillColor="#00000000"
+        android:pathData="M0,9L108,9"
+        android:strokeWidth="0.8"
+        android:strokeColor="#33FFFFFF" />
+    <path
+        android:fillColor="#00000000"
+        android:pathData="M0,19L108,19"
+        android:strokeWidth="0.8"
+        android:strokeColor="#33FFFFFF" />
+    <path
+        android:fillColor="#00000000"
+        android:pathData="M0,29L108,29"
+        android:strokeWidth="0.8"
+        android:strokeColor="#33FFFFFF" />
+    <path
+        android:fillColor="#00000000"
+        android:pathData="M0,39L108,39"
+        android:strokeWidth="0.8"
+        android:strokeColor="#33FFFFFF" />
+    <path
+        android:fillColor="#00000000"
+        android:pathData="M0,49L108,49"
+        android:strokeWidth="0.8"
+        android:strokeColor="#33FFFFFF" />
+    <path
+        android:fillColor="#00000000"
+        android:pathData="M0,59L108,59"
+        android:strokeWidth="0.8"
+        android:strokeColor="#33FFFFFF" />
+    <path
+        android:fillColor="#00000000"
+        android:pathData="M0,69L108,69"
+        android:strokeWidth="0.8"
+        android:strokeColor="#33FFFFFF" />
+    <path
+        android:fillColor="#00000000"
+        android:pathData="M0,79L108,79"
+        android:strokeWidth="0.8"
+        android:strokeColor="#33FFFFFF" />
+    <path
+        android:fillColor="#00000000"
+        android:pathData="M0,89L108,89"
+        android:strokeWidth="0.8"
+        android:strokeColor="#33FFFFFF" />
+    <path
+        android:fillColor="#00000000"
+        android:pathData="M0,99L108,99"
+        android:strokeWidth="0.8"
+        android:strokeColor="#33FFFFFF" />
+    <path
+        android:fillColor="#00000000"
+        android:pathData="M19,29L89,29"
+        android:strokeWidth="0.8"
+        android:strokeColor="#33FFFFFF" />
+    <path
+        android:fillColor="#00000000"
+        android:pathData="M19,39L89,39"
+        android:strokeWidth="0.8"
+        android:strokeColor="#33FFFFFF" />
+    <path
+        android:fillColor="#00000000"
+        android:pathData="M19,49L89,49"
+        android:strokeWidth="0.8"
+        android:strokeColor="#33FFFFFF" />
+    <path
+        android:fillColor="#00000000"
+        android:pathData="M19,59L89,59"
+        android:strokeWidth="0.8"
+        android:strokeColor="#33FFFFFF" />
+    <path
+        android:fillColor="#00000000"
+        android:pathData="M19,69L89,69"
+        android:strokeWidth="0.8"
+        android:strokeColor="#33FFFFFF" />
+    <path
+        android:fillColor="#00000000"
+        android:pathData="M19,79L89,79"
+        android:strokeWidth="0.8"
+        android:strokeColor="#33FFFFFF" />
+    <path
+        android:fillColor="#00000000"
+        android:pathData="M29,19L29,89"
+        android:strokeWidth="0.8"
+        android:strokeColor="#33FFFFFF" />
+    <path
+        android:fillColor="#00000000"
+        android:pathData="M39,19L39,89"
+        android:strokeWidth="0.8"
+        android:strokeColor="#33FFFFFF" />
+    <path
+        android:fillColor="#00000000"
+        android:pathData="M49,19L49,89"
+        android:strokeWidth="0.8"
+        android:strokeColor="#33FFFFFF" />
+    <path
+        android:fillColor="#00000000"
+        android:pathData="M59,19L59,89"
+        android:strokeWidth="0.8"
+        android:strokeColor="#33FFFFFF" />
+    <path
+        android:fillColor="#00000000"
+        android:pathData="M69,19L69,89"
+        android:strokeWidth="0.8"
+        android:strokeColor="#33FFFFFF" />
+    <path
+        android:fillColor="#00000000"
+        android:pathData="M79,19L79,89"
+        android:strokeWidth="0.8"
+        android:strokeColor="#33FFFFFF" />
+</vector>
+</file>
+
+<file path="app/src/main/res/drawable/ic_launcher_foreground.xml">
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:aapt="http://schemas.android.com/aapt"
+    android:width="108dp"
+    android:height="108dp"
+    android:viewportWidth="108"
+    android:viewportHeight="108">
+    <path android:pathData="M31,63.928c0,0 6.4,-11 12.1,-13.1c7.2,-2.6 26,-1.4 26,-1.4l38.1,38.1L107,108.928l-32,-1L31,63.928z">
+        <aapt:attr name="android:fillColor">
+            <gradient
+                android:endX="85.84757"
+                android:endY="92.4963"
+                android:startX="42.9492"
+                android:startY="49.59793"
+                android:type="linear">
+                <item
+                    android:color="#44000000"
+                    android:offset="0.0" />
+                <item
+                    android:color="#00000000"
+                    android:offset="1.0" />
+            </gradient>
+        </aapt:attr>
+    </path>
+    <path
+        android:fillColor="#FFFFFF"
+        android:fillType="nonZero"
+        android:pathData="M65.3,45.828l3.8,-6.6c0.2,-0.4 0.1,-0.9 -0.3,-1.1c-0.4,-0.2 -0.9,-0.1 -1.1,0.3l-3.9,6.7c-6.3,-2.8 -13.4,-2.8 -19.7,0l-3.9,-6.7c-0.2,-0.4 -0.7,-0.5 -1.1,-0.3C38.8,38.328 38.7,38.828 38.9,39.228l3.8,6.6C36.2,49.428 31.7,56.028 31,63.928h46C76.3,56.028 71.8,49.428 65.3,45.828zM43.4,57.328c-0.8,0 -1.5,-0.5 -1.8,-1.2c-0.3,-0.7 -0.1,-1.5 0.4,-2.1c0.5,-0.5 1.4,-0.7 2.1,-0.4c0.7,0.3 1.2,1 1.2,1.8C45.3,56.528 44.5,57.328 43.4,57.328L43.4,57.328zM64.6,57.328c-0.8,0 -1.5,-0.5 -1.8,-1.2s-0.1,-1.5 0.4,-2.1c0.5,-0.5 1.4,-0.7 2.1,-0.4c0.7,0.3 1.2,1 1.2,1.8C66.5,56.528 65.6,57.328 64.6,57.328L64.6,57.328z"
+        android:strokeWidth="1"
+        android:strokeColor="#00000000" />
+</vector>
+</file>
+
+<file path="app/src/main/res/mipmap-anydpi-v26/ic_launcher_round.xml">
+<?xml version="1.0" encoding="utf-8"?>
+<adaptive-icon xmlns:android="http://schemas.android.com/apk/res/android">
+    <background android:drawable="@drawable/ic_launcher_background" />
+    <foreground android:drawable="@drawable/ic_launcher_foreground" />
+    <monochrome android:drawable="@drawable/ic_launcher_foreground" />
+</adaptive-icon>
+</file>
+
+<file path="app/src/main/res/mipmap-anydpi-v26/ic_launcher.xml">
+<?xml version="1.0" encoding="utf-8"?>
+<adaptive-icon xmlns:android="http://schemas.android.com/apk/res/android">
+    <background android:drawable="@drawable/ic_launcher_background" />
+    <foreground android:drawable="@drawable/ic_launcher_foreground" />
+    <monochrome android:drawable="@drawable/ic_launcher_foreground" />
+</adaptive-icon>
+</file>
+
+<file path="app/src/main/res/values/colors.xml">
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="purple_200">#FFBB86FC</color>
+    <color name="purple_500">#FF6200EE</color>
+    <color name="purple_700">#FF3700B3</color>
+    <color name="teal_200">#FF03DAC5</color>
+    <color name="teal_700">#FF018786</color>
+    <color name="black">#FF000000</color>
+    <color name="white">#FFFFFFFF</color>
+</resources>
+</file>
+
+<file path="app/src/main/res/values/strings.xml">
+<resources>
+    <string name="app_name">BackgroundTest</string>
+</resources>
+</file>
+
+<file path="app/src/main/res/values/themes.xml">
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <style name="Theme.BackgroundTest" parent="android:Theme.Material.Light.NoActionBar" />
+</resources>
+</file>
+
+<file path="app/src/main/res/xml/backup_rules.xml">
+<?xml version="1.0" encoding="utf-8"?><!--
+   Sample backup rules file; uncomment and customize as necessary.
+   See https://developer.android.com/guide/topics/data/autobackup
+   for details.
+   Note: This file is ignored for devices older than API 31
+   See https://developer.android.com/about/versions/12/backup-restore
+-->
+<full-backup-content>
+    <!--
+   <include domain="sharedpref" path="."/>
+   <exclude domain="sharedpref" path="device.xml"/>
+-->
+</full-backup-content>
+</file>
+
+<file path="app/src/main/res/xml/data_extraction_rules.xml">
+<?xml version="1.0" encoding="utf-8"?><!--
+   Sample data extraction rules file; uncomment and customize as necessary.
+   See https://developer.android.com/about/versions/12/backup-restore#xml-changes
+   for details.
+-->
+<data-extraction-rules>
+    <cloud-backup>
+        <!-- TODO: Use <include> and <exclude> to control what is backed up.
+        <include .../>
+        <exclude .../>
+        -->
+    </cloud-backup>
+    <!--
+    <device-transfer>
+        <include .../>
+        <exclude .../>
+    </device-transfer>
+    -->
+</data-extraction-rules>
+</file>
+
+<file path="app/src/test/java/com/example/backgroundtest/ExampleUnitTest.kt">
+package com.example.backgroundtest
+
+import org.junit.Test
+
+import org.junit.Assert.*
+
+/**
+ * Example local unit test, which will execute on the development machine (host).
+ *
+ * See [testing documentation](http://d.android.com/tools/testing).
+ */
+class ExampleUnitTest {
+    @Test
+    fun addition_isCorrect() {
+        assertEquals(4, 2 + 2)
+    }
+}
+</file>
+
+<file path="app/.gitignore">
+/build
+</file>
+
+<file path="app/proguard-rules.pro">
+# Add project specific ProGuard rules here.
+# You can control the set of applied configuration files using the
+# proguardFiles setting in build.gradle.
+#
+# For more details, see
+#   http://developer.android.com/guide/developing/tools/proguard.html
+
+# If your project uses WebView with JS, uncomment the following
+# and specify the fully qualified class name to the JavaScript interface
+# class:
+#-keepclassmembers class fqcn.of.javascript.interface.for.webview {
+#   public *;
+#}
+
+# Uncomment this to preserve the line number information for
+# debugging stack traces.
+#-keepattributes SourceFile,LineNumberTable
+
+# If you keep the line number information, uncomment this to
+# hide the original source file name.
+#-renamesourcefileattribute SourceFile
+</file>
+
+<file path="gradle/wrapper/gradle-wrapper.properties">
+#Tue Nov 11 13:47:32 CET 2025
+distributionBase=GRADLE_USER_HOME
+distributionPath=wrapper/dists
+distributionUrl=https\://services.gradle.org/distributions/gradle-8.13-bin.zip
+zipStoreBase=GRADLE_USER_HOME
+zipStorePath=wrapper/dists
+</file>
+
+<file path="gradle/libs.versions.toml">
+[versions]
+agp = "8.12.3"
+kotlin = "2.0.21"
+coreKtx = "1.17.0"
+junit = "4.13.2"
+junitVersion = "1.3.0"
+espressoCore = "3.7.0"
+lifecycleRuntimeKtx = "2.9.4"
+activityCompose = "1.11.0"
+composeBom = "2024.09.00"
+
+[libraries]
+androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "coreKtx" }
+junit = { group = "junit", name = "junit", version.ref = "junit" }
+androidx-junit = { group = "androidx.test.ext", name = "junit", version.ref = "junitVersion" }
+androidx-espresso-core = { group = "androidx.test.espresso", name = "espresso-core", version.ref = "espressoCore" }
+androidx-lifecycle-runtime-ktx = { group = "androidx.lifecycle", name = "lifecycle-runtime-ktx", version.ref = "lifecycleRuntimeKtx" }
+androidx-activity-compose = { group = "androidx.activity", name = "activity-compose", version.ref = "activityCompose" }
+androidx-compose-bom = { group = "androidx.compose", name = "compose-bom", version.ref = "composeBom" }
+androidx-ui = { group = "androidx.compose.ui", name = "ui" }
+androidx-ui-graphics = { group = "androidx.compose.ui", name = "ui-graphics" }
+androidx-ui-tooling = { group = "androidx.compose.ui", name = "ui-tooling" }
+androidx-ui-tooling-preview = { group = "androidx.compose.ui", name = "ui-tooling-preview" }
+androidx-ui-test-manifest = { group = "androidx.compose.ui", name = "ui-test-manifest" }
+androidx-ui-test-junit4 = { group = "androidx.compose.ui", name = "ui-test-junit4" }
+androidx-material3 = { group = "androidx.compose.material3", name = "material3" }
+
+[plugins]
+android-application = { id = "com.android.application", version.ref = "agp" }
+kotlin-android = { id = "org.jetbrains.kotlin.android", version.ref = "kotlin" }
+kotlin-compose = { id = "org.jetbrains.kotlin.plugin.compose", version.ref = "kotlin" }
+</file>
+
+<file path="build.gradle.kts">
+// Top-level build file where you can add configuration options common to all sub-projects/modules.
+plugins {
+    alias(libs.plugins.android.application) apply false
+    alias(libs.plugins.kotlin.android) apply false
+    alias(libs.plugins.kotlin.compose) apply false
+}
+</file>
+
+<file path="gradle.properties">
+# Project-wide Gradle settings.
+# IDE (e.g. Android Studio) users:
+# Gradle settings configured through the IDE *will override*
+# any settings specified in this file.
+# For more details on how to configure your build environment visit
+# http://www.gradle.org/docs/current/userguide/build_environment.html
+# Specifies the JVM arguments used for the daemon process.
+# The setting is particularly useful for tweaking memory settings.
+org.gradle.jvmargs=-Xmx2048m -Dfile.encoding=UTF-8
+# When configured, Gradle will run in incubating parallel mode.
+# This option should only be used with decoupled projects. For more details, visit
+# https://developer.android.com/r/tools/gradle-multi-project-decoupled-projects
+# org.gradle.parallel=true
+# AndroidX package structure to make it clearer which packages are bundled with the
+# Android operating system, and which are packaged with your app's APK
+# https://developer.android.com/topic/libraries/support-library/androidx-rn
+android.useAndroidX=true
+# Kotlin code style for this project: "official" or "obsolete":
+kotlin.code.style=official
+# Enables namespacing of each library's R class so that its R class includes only the
+# resources declared in the library itself and none from the library's dependencies,
+# thereby reducing the size of the R class for that library
+android.nonTransitiveRClass=true
+</file>
+
+<file path="gradlew">
+#!/usr/bin/env sh
+
+#
+# Copyright 2015 the original author or authors.
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#      https://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+#
+
+##############################################################################
+##
+##  Gradle start up script for UN*X
+##
+##############################################################################
+
+# Attempt to set APP_HOME
+# Resolve links: $0 may be a link
+PRG="$0"
+# Need this for relative symlinks.
+while [ -h "$PRG" ] ; do
+    ls=`ls -ld "$PRG"`
+    link=`expr "$ls" : '.*-> \(.*\)$'`
+    if expr "$link" : '/.*' > /dev/null; then
+        PRG="$link"
+    else
+        PRG=`dirname "$PRG"`"/$link"
+    fi
+done
+SAVED="`pwd`"
+cd "`dirname \"$PRG\"`/" >/dev/null
+APP_HOME="`pwd -P`"
+cd "$SAVED" >/dev/null
+
+APP_NAME="Gradle"
+APP_BASE_NAME=`basename "$0"`
+
+# Add default JVM options here. You can also use JAVA_OPTS and GRADLE_OPTS to pass JVM options to this script.
+DEFAULT_JVM_OPTS='"-Xmx64m" "-Xms64m"'
+
+# Use the maximum available, or set MAX_FD != -1 to use that value.
+MAX_FD="maximum"
+
+warn () {
+    echo "$*"
+}
+
+die () {
+    echo
+    echo "$*"
+    echo
+    exit 1
+}
+
+# OS specific support (must be 'true' or 'false').
+cygwin=false
+msys=false
+darwin=false
+nonstop=false
+case "`uname`" in
+  CYGWIN* )
+    cygwin=true
+    ;;
+  Darwin* )
+    darwin=true
+    ;;
+  MINGW* )
+    msys=true
+    ;;
+  NONSTOP* )
+    nonstop=true
+    ;;
+esac
+
+CLASSPATH=$APP_HOME/gradle/wrapper/gradle-wrapper.jar
+
+
+# Determine the Java command to use to start the JVM.
+if [ -n "$JAVA_HOME" ] ; then
+    if [ -x "$JAVA_HOME/jre/sh/java" ] ; then
+        # IBM's JDK on AIX uses strange locations for the executables
+        JAVACMD="$JAVA_HOME/jre/sh/java"
+    else
+        JAVACMD="$JAVA_HOME/bin/java"
+    fi
+    if [ ! -x "$JAVACMD" ] ; then
+        die "ERROR: JAVA_HOME is set to an invalid directory: $JAVA_HOME
+
+Please set the JAVA_HOME variable in your environment to match the
+location of your Java installation."
+    fi
+else
+    JAVACMD="java"
+    which java >/dev/null 2>&1 || die "ERROR: JAVA_HOME is not set and no 'java' command could be found in your PATH.
+
+Please set the JAVA_HOME variable in your environment to match the
+location of your Java installation."
+fi
+
+# Increase the maximum file descriptors if we can.
+if [ "$cygwin" = "false" -a "$darwin" = "false" -a "$nonstop" = "false" ] ; then
+    MAX_FD_LIMIT=`ulimit -H -n`
+    if [ $? -eq 0 ] ; then
+        if [ "$MAX_FD" = "maximum" -o "$MAX_FD" = "max" ] ; then
+            MAX_FD="$MAX_FD_LIMIT"
+        fi
+        ulimit -n $MAX_FD
+        if [ $? -ne 0 ] ; then
+            warn "Could not set maximum file descriptor limit: $MAX_FD"
+        fi
+    else
+        warn "Could not query maximum file descriptor limit: $MAX_FD_LIMIT"
+    fi
+fi
+
+# For Darwin, add options to specify how the application appears in the dock
+if $darwin; then
+    GRADLE_OPTS="$GRADLE_OPTS \"-Xdock:name=$APP_NAME\" \"-Xdock:icon=$APP_HOME/media/gradle.icns\""
+fi
+
+# For Cygwin or MSYS, switch paths to Windows format before running java
+if [ "$cygwin" = "true" -o "$msys" = "true" ] ; then
+    APP_HOME=`cygpath --path --mixed "$APP_HOME"`
+    CLASSPATH=`cygpath --path --mixed "$CLASSPATH"`
+
+    JAVACMD=`cygpath --unix "$JAVACMD"`
+
+    # We build the pattern for arguments to be converted via cygpath
+    ROOTDIRSRAW=`find -L / -maxdepth 1 -mindepth 1 -type d 2>/dev/null`
+    SEP=""
+    for dir in $ROOTDIRSRAW ; do
+        ROOTDIRS="$ROOTDIRS$SEP$dir"
+        SEP="|"
+    done
+    OURCYGPATTERN="(^($ROOTDIRS))"
+    # Add a user-defined pattern to the cygpath arguments
+    if [ "$GRADLE_CYGPATTERN" != "" ] ; then
+        OURCYGPATTERN="$OURCYGPATTERN|($GRADLE_CYGPATTERN)"
+    fi
+    # Now convert the arguments - kludge to limit ourselves to /bin/sh
+    i=0
+    for arg in "$@" ; do
+        CHECK=`echo "$arg"|egrep -c "$OURCYGPATTERN" -`
+        CHECK2=`echo "$arg"|egrep -c "^-"`                                 ### Determine if an option
+
+        if [ $CHECK -ne 0 ] && [ $CHECK2 -eq 0 ] ; then                    ### Added a condition
+            eval `echo args$i`=`cygpath --path --ignore --mixed "$arg"`
+        else
+            eval `echo args$i`="\"$arg\""
+        fi
+        i=`expr $i + 1`
+    done
+    case $i in
+        0) set -- ;;
+        1) set -- "$args0" ;;
+        2) set -- "$args0" "$args1" ;;
+        3) set -- "$args0" "$args1" "$args2" ;;
+        4) set -- "$args0" "$args1" "$args2" "$args3" ;;
+        5) set -- "$args0" "$args1" "$args2" "$args3" "$args4" ;;
+        6) set -- "$args0" "$args1" "$args2" "$args3" "$args4" "$args5" ;;
+        7) set -- "$args0" "$args1" "$args2" "$args3" "$args4" "$args5" "$args6" ;;
+        8) set -- "$args0" "$args1" "$args2" "$args3" "$args4" "$args5" "$args6" "$args7" ;;
+        9) set -- "$args0" "$args1" "$args2" "$args3" "$args4" "$args5" "$args6" "$args7" "$args8" ;;
+    esac
+fi
+
+# Escape application args
+save () {
+    for i do printf %s\\n "$i" | sed "s/'/'\\\\''/g;1s/^/'/;\$s/\$/' \\\\/" ; done
+    echo " "
+}
+APP_ARGS=`save "$@"`
+
+# Collect all arguments for the java command, following the shell quoting and substitution rules
+eval set -- $DEFAULT_JVM_OPTS $JAVA_OPTS $GRADLE_OPTS "\"-Dorg.gradle.appname=$APP_BASE_NAME\"" -classpath "\"$CLASSPATH\"" org.gradle.wrapper.GradleWrapperMain "$APP_ARGS"
+
+exec "$JAVACMD" "$@"
+</file>
+
+<file path="gradlew.bat">
+@rem
+@rem Copyright 2015 the original author or authors.
+@rem
+@rem Licensed under the Apache License, Version 2.0 (the "License");
+@rem you may not use this file except in compliance with the License.
+@rem You may obtain a copy of the License at
+@rem
+@rem      https://www.apache.org/licenses/LICENSE-2.0
+@rem
+@rem Unless required by applicable law or agreed to in writing, software
+@rem distributed under the License is distributed on an "AS IS" BASIS,
+@rem WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+@rem See the License for the specific language governing permissions and
+@rem limitations under the License.
+@rem
+
+@if "%DEBUG%" == "" @echo off
+@rem ##########################################################################
+@rem
+@rem  Gradle startup script for Windows
+@rem
+@rem ##########################################################################
+
+@rem Set local scope for the variables with windows NT shell
+if "%OS%"=="Windows_NT" setlocal
+
+set DIRNAME=%~dp0
+if "%DIRNAME%" == "" set DIRNAME=.
+set APP_BASE_NAME=%~n0
+set APP_HOME=%DIRNAME%
+
+@rem Resolve any "." and ".." in APP_HOME to make it shorter.
+for %%i in ("%APP_HOME%") do set APP_HOME=%%~fi
+
+@rem Add default JVM options here. You can also use JAVA_OPTS and GRADLE_OPTS to pass JVM options to this script.
+set DEFAULT_JVM_OPTS="-Xmx64m" "-Xms64m"
+
+@rem Find java.exe
+if defined JAVA_HOME goto findJavaFromJavaHome
+
+set JAVA_EXE=java.exe
+%JAVA_EXE% -version >NUL 2>&1
+if "%ERRORLEVEL%" == "0" goto execute
+
+echo.
+echo ERROR: JAVA_HOME is not set and no 'java' command could be found in your PATH.
+echo.
+echo Please set the JAVA_HOME variable in your environment to match the
+echo location of your Java installation.
+
+goto fail
+
+:findJavaFromJavaHome
+set JAVA_HOME=%JAVA_HOME:"=%
+set JAVA_EXE=%JAVA_HOME%/bin/java.exe
+
+if exist "%JAVA_EXE%" goto execute
+
+echo.
+echo ERROR: JAVA_HOME is set to an invalid directory: %JAVA_HOME%
+echo.
+echo Please set the JAVA_HOME variable in your environment to match the
+echo location of your Java installation.
+
+goto fail
+
+:execute
+@rem Setup the command line
+
+set CLASSPATH=%APP_HOME%\gradle\wrapper\gradle-wrapper.jar
+
+
+@rem Execute Gradle
+"%JAVA_EXE%" %DEFAULT_JVM_OPTS% %JAVA_OPTS% %GRADLE_OPTS% "-Dorg.gradle.appname=%APP_BASE_NAME%" -classpath "%CLASSPATH%" org.gradle.wrapper.GradleWrapperMain %*
+
+:end
+@rem End local scope for the variables with windows NT shell
+if "%ERRORLEVEL%"=="0" goto mainEnd
+
+:fail
+rem Set variable GRADLE_EXIT_CONSOLE if you need the _script_ return code instead of
+rem the _cmd.exe /c_ return code!
+if  not "" == "%GRADLE_EXIT_CONSOLE%" exit 1
+exit /b 1
+
+:mainEnd
+if "%OS%"=="Windows_NT" endlocal
+
+:omega
+</file>
+
+<file path="local.properties">
+## This file is automatically generated by Android Studio.
+# Do not modify this file -- YOUR CHANGES WILL BE ERASED!
+#
+# This file should *NOT* be checked into Version Control Systems,
+# as it contains information specific to your local configuration.
+#
+# Location of the SDK. This is only used by Gradle.
+# For customization when using a Version Control System, please read the
+# header note.
+sdk.dir=/Users/ignaciomelendez/Library/Android/sdk
+</file>
+
+<file path="settings.gradle.kts">
+pluginManagement {
+    repositories {
+        google {
+            content {
+                includeGroupByRegex("com\\.android.*")
+                includeGroupByRegex("com\\.google.*")
+                includeGroupByRegex("androidx.*")
+            }
+        }
+        mavenCentral()
+        gradlePluginPortal()
+    }
+}
+dependencyResolutionManagement {
+    repositoriesMode.set(RepositoriesMode.FAIL_ON_PROJECT_REPOS)
+    repositories {
+        google()
+        mavenCentral()
+    }
+}
+
+rootProject.name = "BackgroundTest"
+include(":app")
+</file>
+
+<file path="app/src/main/java/com/example/backgroundtest/MainActivity.kt">
+// FICHERO: MainActivity.kt
+// DESCRIPCIÓN: Actividad principal y punto de entrada de la aplicación.
+// Gestiona los permisos, el escaneo BLE, la interfaz de usuario y la navegación.
+
+package com.example.backgroundtest
+
+import android.Manifest
+import android.annotation.SuppressLint
+import android.app.Activity
+import android.bluetooth.BluetoothAdapter
+import android.bluetooth.BluetoothDevice
+import android.bluetooth.BluetoothManager
+import android.bluetooth.le.ScanCallback
+import android.bluetooth.le.ScanResult
+import android.bluetooth.le.ScanSettings
+import android.content.Context
+import android.content.Intent
+import android.content.pm.PackageManager
+import android.os.Build
+import android.os.Bundle
+import android.os.Handler
+import android.os.Looper
+import android.util.Log
+import androidx.activity.ComponentActivity
+import androidx.activity.compose.setContent
+import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.runtime.mutableStateListOf
+import androidx.navigation.compose.NavHost
+import androidx.navigation.compose.composable
+import androidx.navigation.compose.rememberNavController
+import com.example.backgroundtest.ui.theme.BackgroundTestTheme
+
+@SuppressLint("MissingPermission")
+class MainActivity : ComponentActivity() {
+
+    // Obtiene el adaptador Bluetooth del sistema de forma segura (lazy).
+    private val bluetoothAdapter: BluetoothAdapter? by lazy {
+        (getSystemService(Context.BLUETOOTH_SERVICE) as BluetoothManager).adapter
+    }
+
+    // Escáner específico para dispositivos BLE, derivado del adaptador principal.
+    private val bleScanner by lazy { bluetoothAdapter?.bluetoothLeScanner }
+
+    // Lista observable que almacena los dispositivos encontrados y notifica a la UI de Compose cuando cambia.
+    private val discoveredDevices = mutableStateListOf<BluetoothDevice>()
+
+    // Handler para ejecutar tareas con retardo, como detener el escaneo.
+    private val handler = Handler(Looper.getMainLooper())
+    private var isScanning = false
+
+    // Tiempo máximo que durará cada ciclo de escaneo (en milisegundos).
+    private val SCAN_PERIOD: Long = 10000
+
+    /**
+     * Callback que gestiona los resultados del escaneo BLE.
+     */
+    private val scanCallback = object : ScanCallback() {
+        override fun onScanResult(callbackType: Int, result: ScanResult) {
+            super.onScanResult(callbackType, result)
+            val device = result.device
+            // Filtro: Ignorar dispositivos que no anuncian un nombre.
+            if (device.name == null) return
+
+            // Se ejecuta en el hilo principal para modificar la lista de forma segura.
+            runOnUiThread {
+                // Evita añadir duplicados a la lista comprobando la dirección MAC.
+                if (discoveredDevices.none { it.address == device.address }) {
+                    discoveredDevices.add(device)
+                }
+            }
+        }
+
+        override fun onScanFailed(errorCode: Int) {
+            Log.e("BleScanner", "El escaneo BLE falló con código de error: $errorCode")
+        }
+    }
+
+    /**
+     * Lanzador para gestionar las solicitudes de permisos en tiempo de ejecución.
+     */
+    private val requestPermissionsLauncher = registerForActivityResult(ActivityResultContracts.RequestMultiplePermissions()) { permissions ->
+        // Si todos los permisos fueron concedidos, inicia el escaneo. Si no, muestra un aviso.
+        if (permissions.values.all { it }) {
+            scanLeDevice()
+        } else {
+            Log.w("Permissions", "No se concedieron todos los permisos necesarios para el escaneo BLE.")
+        }
+    }
+
+    /**
+     * Lanzador para solicitar al usuario que active el Bluetooth.
+     */
+    private val enableBluetoothLauncher = registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
+        // Si el usuario acepta y activa el Bluetooth, inicia el escaneo.
+        if (result.resultCode == Activity.RESULT_OK) {
+            scanLeDevice()
+        } else {
+            Log.w("Bluetooth", "El usuario no habilitó el Bluetooth.")
+        }
+    }
+
+    /**
+     * Método principal que se ejecuta al crear la actividad.
+     * Aquí se configura la interfaz de usuario y la navegación.
+     */
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+        setContent {
+            val navController = rememberNavController()
+
+            BackgroundTestTheme {
+                // NavHost es el contenedor que gestiona las diferentes pantallas (destinos) de la app.
+                NavHost(navController = navController, startDestination = "device_list") {
+                    // Ruta para la pantalla de la lista de dispositivos.
+                    composable("device_list") {
+                        DeviceListScreen(
+                            devices = discoveredDevices,
+                            onDeviceClick = { device ->
+                                // Al hacer clic, se inicia el servicio en segundo plano para gestionar la conexión.
+                                val intent = Intent(this@MainActivity, BleConnectionService::class.java).apply {
+                                    putExtra("DEVICE_ADDRESS", device.address)
+                                }
+                                startService(intent)
+                                // Y se navega a la pantalla de detalles, pasando la dirección y el nombre.
+                                navController.navigate("device_detail/${device.address}/${device.name}")
+                            },
+                            onScanClick = { 
+                                // Antes de escanear, siempre comprobar los permisos.
+                                if (hasRequiredPermissions()) scanLeDevice() else requestBlePermissions() 
+                            }
+                        )
+                    }
+                    // Ruta para la pantalla de detalles, con argumentos dinámicos (dirección y nombre).
+                    composable("device_detail/{deviceAddress}/{deviceName}") { backStackEntry ->
+                        val deviceName = backStackEntry.arguments?.getString("deviceName")
+                        DeviceDetailScreen(
+                            deviceName = deviceName,
+                            onDisconnect = {
+                                // Al desconectar, se detiene el servicio y se cierra la conexión.
+                                val intent = Intent(this@MainActivity, BleConnectionService::class.java)
+                                stopService(intent)
+                                // Se vuelve a la pantalla anterior (la lista).
+                                navController.popBackStack()
+                            }
+                        )
+                    }
+                }
+            }
+        }
+    }
+
+    /**
+     * Inicia el escaneo de dispositivos BLE, gestionando el estado y los permisos.
+     */
+    private fun scanLeDevice() {
+        // Comprueba si el Bluetooth está activado en el dispositivo.
+        if (bluetoothAdapter?.isEnabled == false) {
+            val enableBtIntent = Intent(BluetoothAdapter.ACTION_REQUEST_ENABLE)
+            enableBluetoothLauncher.launch(enableBtIntent)
+            return
+        }
+
+        // Evita iniciar un nuevo escaneo si ya hay uno en curso.
+        if (!isScanning) {
+            // Programa la detención automática del escaneo después de SCAN_PERIOD.
+            handler.postDelayed({ 
+                isScanning = false
+                bleScanner?.stopScan(scanCallback)
+            }, SCAN_PERIOD)
+
+            isScanning = true
+            // Inicia el escaneo con configuración de baja latencia para una detección rápida.
+            bleScanner?.startScan(null, ScanSettings.Builder().setScanMode(ScanSettings.SCAN_MODE_LOW_LATENCY).build(), scanCallback)
+        }
+    }
+
+    /**
+     * Comprueba si la aplicación tiene todos los permisos necesarios para el escaneo y conexión BLE.
+     * La lógica cambia según la versión de Android.
+     */
+    private fun hasRequiredPermissions(): Boolean {
+        // Android 12 (S) y superior requieren permisos específicos de Bluetooth.
+        val hasScan = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) checkSelfPermission(Manifest.permission.BLUETOOTH_SCAN) == PackageManager.PERMISSION_GRANTED else true
+        val hasConnect = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) checkSelfPermission(Manifest.permission.BLUETOOTH_CONNECT) == PackageManager.PERMISSION_GRANTED else true
+        // Versiones anteriores a Android 12 requieren permiso de ubicación.
+        val hasLocation = if (Build.VERSION.SDK_INT < Build.VERSION_CODES.S) checkSelfPermission(Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED else true
+        return hasScan && hasConnect && hasLocation
+    }
+
+    /**
+     * Solicita los permisos BLE necesarios al usuario según la versión de Android.
+     */
+    private fun requestBlePermissions() {
+        val permissions = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+            arrayOf(Manifest.permission.BLUETOOTH_SCAN, Manifest.permission.BLUETOOTH_CONNECT)
+        } else {
+            arrayOf(Manifest.permission.ACCESS_FINE_LOCATION)
+        }
+        requestPermissionsLauncher.launch(permissions)
+    }
+}
+</file>
+
+<file path="app/src/main/AndroidManifest.xml">
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+FICHERO: AndroidManifest.xml
+DESCRIPCIÓN: Manifiesto principal de la aplicación. Declara los componentes de la app (actividades, servicios),
+los permisos que necesita y las características de hardware que requiere.
+-->
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools">
+
+    <!--
+    CARACTERÍSTICAS DE HARDWARE
+    -->
+    <!-- Declara que la app requiere hardware Bluetooth Low Energy (BLE). Si un dispositivo no tiene BLE, no podrá instalar la app desde Google Play. -->
+    <uses-feature
+        android:name="android.hardware.bluetooth_le"
+        android:required="true" />
+
+    <!--
+    PERMISOS
+    -->
+
+    <!-- === Permisos para Servicios en Primer Plano (Foreground Services) === -->
+    <!-- Permiso general para ejecutar un servicio en primer plano. Obligatorio desde Android 9 (API 28). -->
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
+    <!-- Permiso específico para servicios que interactúan con dispositivos conectados. Obligatorio en Android 14+ (API 34). -->
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE_CONNECTED_DEVICE" />
+
+
+    <!-- === Permisos para Bluetooth en Android 12 (API 31) y SUPERIORES === -->
+    <!-- Permiso para escanear dispositivos BLE. -->
+    <uses-permission
+        android:name="android.permission.BLUETOOTH_SCAN"
+        android:usesPermissionFlags="neverForLocation"
+        tools:targetApi="s" />
+    <!-- Permiso para conectar con dispositivos BLE ya emparejados o escaneados. -->
+    <uses-permission android:name="android.permission.BLUETOOTH_CONNECT" />
+
+    <!-- === Permisos para Bluetooth en Android 11 (API 30) e INFERIORES === -->
+    <!-- Permiso general de Bluetooth. -->
+    <uses-permission
+        android:name="android.permission.BLUETOOTH"
+        android:maxSdkVersion="30" />
+    <!-- Permiso para realizar acciones de administración de Bluetooth, como iniciar el escaneo. -->
+    <uses-permission
+        android:name="android.permission.BLUETOOTH_ADMIN"
+        android:maxSdkVersion="30" />
+    <!-- El escaneo BLE en estas versiones requería acceso a la ubicación. `maxSdkVersion` asegura que solo se pida en versiones antiguas. -->
+    <uses-permission
+        android:name="android.permission.ACCESS_FINE_LOCATION"
+        android:maxSdkVersion="30" />
+
+    <!--
+    DEFINICIÓN DE LA APLICACIÓN Y SUS COMPONENTES
+    -->
+    <application
+        android:allowBackup="true"
+        android:dataExtractionRules="@xml/data_extraction_rules"
+        android:fullBackupContent="@xml/backup_rules"
+        android:icon="@mipmap/ic_launcher"
+        android:label="@string/app_name"
+        android:roundIcon="@mipmap/ic_launcher_round"
+        android:supportsRtl="true"
+        android:theme="@style/Theme.BackgroundTest">
+
+        <!-- Declaración del servicio de conexión BLE. -->
+        <service
+            android:name=".BleConnectionService"
+            android:enabled="true"
+            android:exported="false"
+            android:foregroundServiceType="connectedDevice" />
+
+        <!-- Declaración de la Actividad Principal. -->
+        <activity
+            android:name=".MainActivity"
+            android:exported="true"
+            android:label="@string/app_name"
+            android:theme="@style/Theme.BackgroundTest">
+            <!-- El `intent-filter` la marca como el punto de entrada principal de la aplicación. -->
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+        </activity>
+    </application>
+
+</manifest>
+</file>
+
+<file path="app/build.gradle.kts">
+plugins {
+    alias(libs.plugins.android.application)
+    alias(libs.plugins.kotlin.android)
+    alias(libs.plugins.kotlin.compose)
+}
+
+android {
+    namespace = "com.example.backgroundtest"
+    compileSdk = 36
+
+    defaultConfig {
+        applicationId = "com.example.backgroundtest"
+        minSdk = 24
+        targetSdk = 36
+        versionCode = 1
+        versionName = "1.0"
+
+        testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
+    }
+
+    buildTypes {
+        release {
+            isMinifyEnabled = false
+            proguardFiles(
+                getDefaultProguardFile("proguard-android-optimize.txt"),
+                "proguard-rules.pro"
+            )
+        }
+    }
+    compileOptions {
+        sourceCompatibility = JavaVersion.VERSION_11
+        targetCompatibility = JavaVersion.VERSION_11
+    }
+    kotlinOptions {
+        jvmTarget = "11"
+    }
+    buildFeatures {
+        compose = true
+    }
+}
+
+dependencies {
+
+    implementation(libs.androidx.core.ktx)
+    implementation(libs.androidx.lifecycle.runtime.ktx)
+    implementation(libs.androidx.activity.compose)
+    implementation(platform(libs.androidx.compose.bom))
+    implementation(libs.androidx.ui)
+    implementation(libs.androidx.ui.graphics)
+    implementation(libs.androidx.ui.tooling.preview)
+    implementation(libs.androidx.material3)
+    implementation("androidx.navigation:navigation-compose:2.7.7")
+    implementation("androidx.lifecycle:lifecycle-viewmodel-compose:2.8.0")
+    testImplementation(libs.junit)
+    androidTestImplementation(libs.androidx.junit)
+    androidTestImplementation(libs.androidx.espresso.core)
+    androidTestImplementation(platform(libs.androidx.compose.bom))
+    androidTestImplementation(libs.androidx.ui.test.junit4)
+    debugImplementation(libs.androidx.ui.tooling)
+    debugImplementation(libs.androidx.ui.test.manifest)
+}
+</file>
+
+<file path="app/src/main/java/com/example/backgroundtest/BleConnectionService.kt">
+// FICHERO: BleConnectionService.kt
+// DESCRIPCIÓN: Servicio en segundo plano que gestiona de forma robusta la conexión y reconexión a un dispositivo BLE.
+
+package com.example.backgroundtest
+
+import android.annotation.SuppressLint
+import android.app.Notification
+import android.app.NotificationChannel
+import android.app.NotificationManager
+import android.app.Service
+import android.bluetooth.*
+import android.bluetooth.le.ScanCallback
+import android.bluetooth.le.ScanFilter
+import android.bluetooth.le.ScanResult
+import android.bluetooth.le.ScanSettings
+import android.content.Context
+import android.content.Intent
+import android.os.Build
+import android.os.IBinder
+import android.util.Log
+import androidx.core.app.NotificationCompat
+
+@SuppressLint("MissingPermission")
+class BleConnectionService : Service() {
+
+    // --- Propiedades del Servicio ---
+
+    private val bluetoothAdapter: BluetoothAdapter by lazy {
+        (getSystemService(Context.BLUETOOTH_SERVICE) as BluetoothManager).adapter
+    }
+    private val leScanner by lazy { bluetoothAdapter.bluetoothLeScanner }
+
+    // La instancia de la conexión GATT actual. Es nula si no hay conexión.
+    private var bluetoothGatt: BluetoothGatt? = null
+    // Dirección MAC del dispositivo al que nos queremos conectar.
+    private var deviceAddress: String? = null
+    // Flag para controlar si ya hay un intento de reconexión en marcha.
+    private var isAttemptingReconnect = false
+
+    // --- Callbacks de Bluetooth ---
+
+    /**
+     * Callback para el escaneo de reconexión. Se activa gracias al `CALLBACK_TYPE_FIRST_MATCH`.
+     */
+    private val scanCallback = object : ScanCallback() {
+        override fun onScanResult(callbackType: Int, result: ScanResult) {
+            // ¡Este es nuestro evento! El sistema operativo ha encontrado el dispositivo que buscábamos.
+            Log.i("BleService", "Dispositivo para reconexión encontrado. Deteniendo escaneo y conectando...")
+            // El escaneo se detiene automáticamente, pero lo llamamos explícitamente para limpiar el estado.
+            stopReconnectionScan()
+            connectToDevice()
+        }
+
+        override fun onScanFailed(errorCode: Int) {
+            Log.e("BleService", "Fallo en el escaneo de reconexión. Código: $errorCode")
+            isAttemptingReconnect = false // Reseteamos el flag para poder intentarlo de nuevo si es necesario.
+        }
+    }
+
+    /**
+     * Callback principal que gestiona los eventos del ciclo de vida de la conexión GATT.
+     */
+    private val gattCallback = object : BluetoothGattCallback() {
+        override fun onConnectionStateChange(gatt: BluetoothGatt, status: Int, newState: Int) {
+            when (newState) {
+                BluetoothAdapter.STATE_CONNECTED -> {
+                    Log.i("BleService", "Conectado exitosamente al dispositivo: ${gatt.device.address}")
+                    isAttemptingReconnect = false // Se confirma que la reconexión (si estaba en curso) fue exitosa.
+                    ConnectionManager.updateState(ConnectionState.CONNECTED)
+                }
+                BluetoothAdapter.STATE_DISCONNECTED -> {
+                    Log.w("BleService", "Desconectado del dispositivo: ${gatt.device.address}")
+                    ConnectionManager.updateState(ConnectionState.DISCONNECTED)
+                    // Es crucial cerrar la instancia de GATT para liberar recursos.
+                    gatt.close()
+                    bluetoothGatt = null
+                    // Inicia el proceso de reconexión basado en eventos.
+                    startReconnectionScan()
+                }
+            }
+        }
+    }
+
+    // --- Ciclo de Vida del Servicio ---
+
+    override fun onBind(intent: Intent): IBinder? = null // No usamos binding, es un servicio iniciado.
+
+    override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
+        val newDeviceAddress = intent?.getStringExtra("DEVICE_ADDRESS")
+        // Si se inicia el servicio con una nueva dirección, se inicia la conexión.
+        if (newDeviceAddress != null && newDeviceAddress != deviceAddress) {
+            deviceAddress = newDeviceAddress
+            connectToDevice()
+        }
+
+        // Inicia el servicio en primer plano para evitar que Android lo mate.
+        startForeground(1, createNotification())
+        // START_STICKY: Si el sistema mata el servicio, lo intentará recrear, pero el intent será nulo.
+        return START_STICKY
+    }
+
+    override fun onDestroy() {
+        super.onDestroy()
+        Log.i("BleService", "Servicio destruido. Limpiando todos los recursos BLE.")
+        // Asegura que todo se detenga y se limpie correctamente.
+        stopReconnectionScan()
+        ConnectionManager.updateState(ConnectionState.DISCONNECTING)
+        bluetoothGatt?.close()
+        bluetoothGatt = null
+        ConnectionManager.updateState(ConnectionState.DISCONNECTED)
+    }
+
+    // --- Lógica de Conexión y Reconexión ---
+
+    /**
+     * Inicia un escaneo BLE optimizado para encontrar un dispositivo específico y reconectarse.
+     */
+    private fun startReconnectionScan() {
+        if (isAttemptingReconnect || deviceAddress == null) return
+        isAttemptingReconnect = true
+        Log.i("BleService", "Iniciando búsqueda de reconexión basada en eventos para $deviceAddress")
+
+        // Filtro para buscar únicamente nuestro dispositivo por su dirección MAC.
+        val scanFilters = listOf(ScanFilter.Builder().setDeviceAddress(deviceAddress).build())
+
+        // Configuración de escaneo clave para la reconexión eficiente:
+        val scanSettings = ScanSettings.Builder()
+            // Modo equilibrado: Detecta el dispositivo de forma fiable sin gastar demasiada batería.
+            .setScanMode(ScanSettings.SCAN_MODE_BALANCED)
+            // Clave: El sistema nos notificará solo la PRIMERA VEZ que encuentre el dispositivo.
+            .setCallbackType(ScanSettings.CALLBACK_TYPE_FIRST_MATCH)
+            // Clave: Modo agresivo para asegurar la detección incluso si la señal es débil o la app está en primer plano.
+            .setMatchMode(ScanSettings.MATCH_MODE_AGGRESSIVE)
+            .build()
+
+        leScanner.startScan(scanFilters, scanSettings, scanCallback)
+    }
+
+    /**
+     * Detiene el escaneo de reconexión si estaba en marcha.
+     */
+    private fun stopReconnectionScan() {
+        if (!isAttemptingReconnect) return
+        Log.i("BleService", "Deteniendo búsqueda de reconexión.")
+        isAttemptingReconnect = false
+        leScanner.stopScan(scanCallback)
+    }
+
+    /**
+     * Inicia una conexión GATT nueva con el dispositivo.
+     */
+    private fun connectToDevice() {
+        // Si estábamos en medio de un escaneo de reconexión, lo detenemos antes de conectar.
+        if(isAttemptingReconnect) {
+            stopReconnectionScan()
+        }
+        deviceAddress?.let { address ->
+            ConnectionManager.updateState(ConnectionState.CONNECTING)
+            try {
+                val device: BluetoothDevice = bluetoothAdapter.getRemoteDevice(address)
+                // Cierra cualquier instancia anterior para evitar fugas de recursos.
+                bluetoothGatt?.close()
+                // Crea una nueva conexión GATT. El resultado se gestionará en `gattCallback`.
+                bluetoothGatt = device.connectGatt(this, false, gattCallback)
+            } catch (e: IllegalArgumentException) {
+                Log.e("BleService", "La dirección MAC '$address' no es válida.")
+                ConnectionManager.updateState(ConnectionState.DISCONNECTED)
+                stopSelf() // Detiene el servicio si la dirección es incorrecta.
+            }
+        }
+    }
+
+    // --- Notificación de Servicio en Primer Plano ---
+
+    /**
+     * Crea la notificación persistente necesaria para un servicio en primer plano.
+     */
+    private fun createNotification(): Notification {
+        val channelId = "ble_connection_channel"
+        // El canal de notificación es obligatorio a partir de Android 8.0 (Oreo).
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            val channel = NotificationChannel(channelId, "Conexión BLE", NotificationManager.IMPORTANCE_LOW)
+            val manager = getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
+            manager.createNotificationChannel(channel)
+        }
+
+        return NotificationCompat.Builder(this, channelId)
+            .setContentTitle("Servicio BLE Activo")
+            .setContentText("Manteniendo la conexión con el dispositivo en segundo plano.")
+            .setSmallIcon(R.mipmap.ic_launcher) // Deberías usar un icono más adecuado.
+            .build()
+    }
+}
+</file>
+
+</files>

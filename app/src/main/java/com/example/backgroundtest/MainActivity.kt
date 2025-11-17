@@ -22,14 +22,16 @@ import androidx.activity.compose.setContent
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.remember
+import androidx.core.content.ContextCompat
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import com.example.backgroundtest.ui.theme.BackgroundTestTheme
 
+// Main activity for the app
 @SuppressLint("MissingPermission")
 class MainActivity : ComponentActivity() {
-
+    // Bluetooth adapter and scanner
     private val bluetoothAdapter: BluetoothAdapter? by lazy {
         (getSystemService(Context.BLUETOOTH_SERVICE) as BluetoothManager).adapter
     }
@@ -39,6 +41,7 @@ class MainActivity : ComponentActivity() {
     private var isScanning = false
     private val SCAN_PERIOD: Long = 10000
 
+    // Scan function to find BLE devices
     private val scanCallback = object : ScanCallback() {
         override fun onScanResult(callbackType: Int, result: ScanResult) {
             super.onScanResult(callbackType, result)
@@ -57,16 +60,25 @@ class MainActivity : ComponentActivity() {
         }
     }
 
+    // Activity result launcher for handling Bluetooth permissions
     private val requestPermissionsLauncher = registerForActivityResult(ActivityResultContracts.RequestMultiplePermissions()) { permissions ->
-        if (permissions.values.all { it }) scanLeDevice()
-        else Log.w("Permissions", "No se concedieron todos los permisos.")
+        if (permissions.values.all { it }) {
+            scanLeDevice()
+        } else {
+            Log.w("Permissions", "No se concedieron todos los permisos.")
+        }
     }
 
+    // Activity result launcher for enabling Bluetooth
     private val enableBluetoothLauncher = registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
-        if (result.resultCode == Activity.RESULT_OK) scanLeDevice()
-        else Log.w("Bluetooth", "El usuario no habilitó Bluetooth.")
+        if (result.resultCode == Activity.RESULT_OK) {
+            scanLeDevice()
+        } else {
+            Log.w("Bluetooth", "El usuario no habilitó Bluetooth.")
+        }
     }
 
+    // Activity creation
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContent {
@@ -81,10 +93,14 @@ class MainActivity : ComponentActivity() {
                                 val intent = Intent(this@MainActivity, BleConnectionService::class.java).apply {
                                     putExtra("DEVICE_ADDRESS", device.address)
                                 }
-                                startService(intent)
+                                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                                    startForegroundService(intent)
+                                } else {
+                                    startService(intent)
+                                }
                                 navController.navigate("device_detail/${device.address}/${device.name}")
                             },
-                            onScanClick = { if (hasRequiredPermissions()) scanLeDevice() else requestBlePermissions() }
+                            onScanClick = { if (hasRequiredPermissions()) scanLeDevice() else requestAppPermissions() }
                         )
                     }
                     composable("device_detail/{deviceAddress}/{deviceName}") { backStackEntry ->
@@ -103,6 +119,7 @@ class MainActivity : ComponentActivity() {
         }
     }
 
+    // Start scanning for BLE devices
     private fun scanLeDevice() {
         if (bluetoothAdapter?.isEnabled == false) {
             val enableBtIntent = Intent(BluetoothAdapter.ACTION_REQUEST_ENABLE)
@@ -117,19 +134,41 @@ class MainActivity : ComponentActivity() {
         }
     }
 
+    // Check for required permissions
     private fun hasRequiredPermissions(): Boolean {
-        val hasScan = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) checkSelfPermission(Manifest.permission.BLUETOOTH_SCAN) == PackageManager.PERMISSION_GRANTED else true
-        val hasConnect = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) checkSelfPermission(Manifest.permission.BLUETOOTH_CONNECT) == PackageManager.PERMISSION_GRANTED else true
-        val hasLocation = if (Build.VERSION.SDK_INT < Build.VERSION_CODES.S) checkSelfPermission(Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED else true
-        return hasScan && hasConnect && hasLocation
+        val requiredPermissions = mutableListOf<String>()
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+            requiredPermissions.add(Manifest.permission.BLUETOOTH_SCAN)
+            requiredPermissions.add(Manifest.permission.BLUETOOTH_CONNECT)
+        } else {
+            requiredPermissions.add(Manifest.permission.ACCESS_FINE_LOCATION)
+        }
+
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            requiredPermissions.add(Manifest.permission.POST_NOTIFICATIONS)
+        }
+
+        return requiredPermissions.all { permission ->
+            ContextCompat.checkSelfPermission(this, permission) == PackageManager.PERMISSION_GRANTED
+        }
     }
 
-    private fun requestBlePermissions() {
-        val permissions = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
-            arrayOf(Manifest.permission.BLUETOOTH_SCAN, Manifest.permission.BLUETOOTH_CONNECT)
+    // Request all necessary permissions
+    private fun requestAppPermissions() {
+        val permissionsToRequest = mutableListOf<String>()
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+            permissionsToRequest.add(Manifest.permission.BLUETOOTH_SCAN)
+            permissionsToRequest.add(Manifest.permission.BLUETOOTH_CONNECT)
         } else {
-            arrayOf(Manifest.permission.ACCESS_FINE_LOCATION)
+            permissionsToRequest.add(Manifest.permission.ACCESS_FINE_LOCATION)
         }
-        requestPermissionsLauncher.launch(permissions)
+
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            permissionsToRequest.add(Manifest.permission.POST_NOTIFICATIONS)
+        }
+
+        if (permissionsToRequest.isNotEmpty()) {
+            requestPermissionsLauncher.launch(permissionsToRequest.toTypedArray())
+        }
     }
 }

@@ -5,154 +5,158 @@ import android.app.Notification
 import android.app.NotificationChannel
 import android.app.NotificationManager
 import android.app.Service
-import android.bluetooth.BluetoothAdapter
-import android.bluetooth.BluetoothDevice
-import android.bluetooth.BluetoothGatt
-import android.bluetooth.BluetoothGattCallback
-import android.bluetooth.BluetoothManager
-import android.bluetooth.le.ScanCallback
-import android.bluetooth.le.ScanFilter
-import android.bluetooth.le.ScanResult
-import android.bluetooth.le.ScanSettings
+import android.bluetooth.*
 import android.content.Context
 import android.content.Intent
 import android.os.Build
-import android.os.Handler
 import android.os.IBinder
-import android.os.Looper
 import android.util.Log
 import androidx.core.app.NotificationCompat
 
 @SuppressLint("MissingPermission")
 class BleConnectionService : Service() {
 
+    // --- Service Properties ---
+
     private val bluetoothAdapter: BluetoothAdapter by lazy {
         (getSystemService(Context.BLUETOOTH_SERVICE) as BluetoothManager).adapter
     }
-    private val leScanner by lazy { bluetoothAdapter.bluetoothLeScanner }
-    private val handler = Handler(Looper.getMainLooper()) // Handler can still be useful for other tasks
+    private val notificationManager by lazy {
+        getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
+    }
 
     private var bluetoothGatt: BluetoothGatt? = null
     private var deviceAddress: String? = null
-    private var isAttemptingReconnect = false
 
-    private val scanCallback = object : ScanCallback() {
-        override fun onScanResult(callbackType: Int, result: ScanResult) {
-            // This is our event! The OS found the device.
-            Log.i("BleService", "Dispositivo para reconexión encontrado. Conectando...")
-            // The scan stops automatically on first match with CALLBACK_TYPE_FIRST_MATCH,
-            // but we call stop just to be sure and to clean up our state.
-            stopReconnectionScan()
-            connectToDevice()
-        }
+    // --- Bluetooth Callbacks ---
 
-        override fun onScanFailed(errorCode: Int) {
-            Log.e("BleService", "Fallo en el escaneo de reconexión: $errorCode")
-            // If scan fails, maybe retry after a delay, but for now we just log it.
-            isAttemptingReconnect = false
-        }
-    }
-
+    /**
+     * Main callback that manages the lifecycle events of the GATT connection.
+     */
     private val gattCallback = object : BluetoothGattCallback() {
         override fun onConnectionStateChange(gatt: BluetoothGatt, status: Int, newState: Int) {
             when (newState) {
                 BluetoothAdapter.STATE_CONNECTED -> {
-                    Log.i("BleService", "Conectado al dispositivo: ${gatt.device.address}")
-                    isAttemptingReconnect = false // Successfully reconnected
+                    Log.i("BleService", "Successfully connected to device: ${gatt.device.address}")
                     ConnectionManager.updateState(ConnectionState.CONNECTED)
+
+                    // When connected, update the notification to reflect the "Connected" state.
+                    updateNotification(
+                        "Device Connected",
+                        "Active connection with ${gatt.device.address}"
+                    )
                 }
                 BluetoothAdapter.STATE_DISCONNECTED -> {
-                    Log.w("BleService", "Desconectado del dispositivo: ${gatt.device.address}")
+                    Log.w("BleService", "Disconnected from device: ${gatt.device.address}. Status: $status")
                     ConnectionManager.updateState(ConnectionState.DISCONNECTED)
-                    gatt.close()
-                    bluetoothGatt = null
-                    // Start the event-driven reconnection process
-                    startReconnectionScan()
+
+                    // Update notification to reflect "Reconnecting" state
+                    updateNotification(
+                        "Device Disconnected",
+                        "Attempting to reconnect..."
+                    )
+
+                    // IMPORTANT: Instead of closing, we tell the system to try to reconnect automatically.
+                    // The OS will listen for the device's advertisement in the background.
+                    // This requires the GATT object to have been created with `autoConnect = true`.
+                    gatt.connect()
                 }
             }
         }
     }
 
-    override fun onBind(intent: Intent): IBinder? = null
+    // --- Service Lifecycle ---
+
+    override fun onBind(intent: Intent): IBinder? = null // We don't use binding, it's a started service.
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
-        val newDeviceAddress = intent?.getStringExtra("DEVICE_ADDRESS")
-        if (newDeviceAddress != null && newDeviceAddress != deviceAddress) {
-            deviceAddress = newDeviceAddress
+        val addressFromIntent = intent?.getStringExtra("DEVICE_ADDRESS")
+
+        if (addressFromIntent != null) {
+            // If it's a new device, close the old connection and start a new one.
+            if (deviceAddress != null && deviceAddress != addressFromIntent) {
+                bluetoothGatt?.close()
+                bluetoothGatt = null
+            }
+            deviceAddress = addressFromIntent
+
+            // Promote the service to foreground and start the connection.
+            val notification = createNotification(
+                "Connecting...",
+                "Establishing connection with $deviceAddress"
+            )
+            startForeground(SERVICE_NOTIFICATION_ID, notification)
+
             connectToDevice()
         }
 
-        startForeground(1, createNotification())
+        // START_STICKY: If the system kills the service, it will try to recreate it.
         return START_STICKY
-    }
-
-    private fun startReconnectionScan() {
-        if (isAttemptingReconnect || deviceAddress == null) return
-        isAttemptingReconnect = true
-        Log.i("BleService", "Iniciando búsqueda de reconexión basada en eventos...")
-
-        val scanFilters = listOf(ScanFilter.Builder().setDeviceAddress(deviceAddress).build())
-        
-        // This is the key change: CALLBACK_TYPE_FIRST_MATCH
-        // We tell the OS to notify us only the first time it sees our device.
-        val scanSettings = ScanSettings.Builder()
-            .setScanMode(ScanSettings.SCAN_MODE_BALANCED) // Use low power for long-running background scans
-            .setCallbackType(ScanSettings.CALLBACK_TYPE_FIRST_MATCH)
-            .setMatchMode(ScanSettings.MATCH_MODE_AGGRESSIVE)
-            .build()
-
-        leScanner.startScan(scanFilters, scanSettings, scanCallback)
-    }
-
-    private fun stopReconnectionScan() {
-        if (!isAttemptingReconnect) return
-        Log.i("BleService", "Deteniendo búsqueda para reconexión.")
-        isAttemptingReconnect = false
-        leScanner.stopScan(scanCallback)
-    }
-
-    private fun connectToDevice() {
-        if(isAttemptingReconnect) {
-            stopReconnectionScan()
-        }
-        deviceAddress?.let { address ->
-            ConnectionManager.updateState(ConnectionState.CONNECTING)
-            try {
-                val device: BluetoothDevice = bluetoothAdapter.getRemoteDevice(address)
-                // Close previous gatt instance if it exists
-                bluetoothGatt?.close()
-                // Connect with a new gatt instance
-                bluetoothGatt = device.connectGatt(this, false, gattCallback)
-            } catch (e: IllegalArgumentException) {
-                Log.e("BleService", "Dirección de dispositivo no válida.")
-                ConnectionManager.updateState(ConnectionState.DISCONNECTED)
-                stopSelf()
-            }
-        }
-    }
-
-    private fun createNotification(): Notification {
-        val channelId = "ble_connection_channel"
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            val channel = NotificationChannel(channelId, "Conexión BLE", NotificationManager.IMPORTANCE_LOW)
-            val manager = getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
-            manager.createNotificationChannel(channel)
-        }
-
-        return NotificationCompat.Builder(this, channelId)
-            .setContentTitle("Servicio BLE Activo")
-            .setContentText("Manteniendo la conexión con el dispositivo BLE en segundo plano.")
-            .setSmallIcon(R.mipmap.ic_launcher)
-            .build()
     }
 
     override fun onDestroy() {
         super.onDestroy()
-        Log.i("BleService", "Servicio destruido. Desconectando GATT.")
-        stopReconnectionScan()
+        Log.i("BleService", "Service destroyed. Cleaning up all BLE resources.")
+        // Stop the foreground service and remove the notification.
+        stopForeground(true)
+        // Ensure everything is stopped and cleaned up correctly.
         ConnectionManager.updateState(ConnectionState.DISCONNECTING)
         bluetoothGatt?.close()
         bluetoothGatt = null
         ConnectionManager.updateState(ConnectionState.DISCONNECTED)
+    }
+
+    // --- Connection Logic ---
+
+    /**
+     * Initiates a new GATT connection with the device.
+     */
+    private fun connectToDevice() {
+        deviceAddress?.let { address ->
+            ConnectionManager.updateState(ConnectionState.CONNECTING)
+
+            try {
+                val device: BluetoothDevice = bluetoothAdapter.getRemoteDevice(address)
+                // Close any previous instance to avoid resource leaks.
+                bluetoothGatt?.close()
+                // Create a new GATT connection using autoConnect = true for robust reconnection.
+                bluetoothGatt = device.connectGatt(this, true, gattCallback)
+            } catch (e: IllegalArgumentException) {
+                Log.e("BleService", "The MAC address '$address' is not valid.")
+                ConnectionManager.updateState(ConnectionState.DISCONNECTED)
+                stopSelf() // Stop the service if the address is incorrect.
+            }
+        }
+    }
+
+    // --- Foreground Service Notification ---
+
+    private fun updateNotification(title: String, text: String) {
+        val notification = createNotification(title, text)
+        notificationManager.notify(SERVICE_NOTIFICATION_ID, notification)
+    }
+
+    /**
+     * Creates the persistent notification required for a foreground service.
+     */
+    private fun createNotification(title: String, text: String): Notification {
+        val channelId = "ble_connection_channel"
+        // The notification channel is mandatory from Android 8.0 (Oreo).
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            val channel = NotificationChannel(channelId, "BLE Connection", NotificationManager.IMPORTANCE_DEFAULT)
+            channel.description = "Notifications for BLE connection status"
+            notificationManager.createNotificationChannel(channel)
+        }
+
+        return NotificationCompat.Builder(this, channelId)
+            .setContentTitle(title)
+            .setContentText(text)
+            .setSmallIcon(R.mipmap.ic_launcher) // You should use a more suitable icon.
+            .setOngoing(true) // Makes the notification non-dismissable by the user.
+            .build()
+    }
+
+    companion object {
+        private const val SERVICE_NOTIFICATION_ID = 1
     }
 }
