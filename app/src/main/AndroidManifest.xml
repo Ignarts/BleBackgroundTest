@@ -44,6 +44,9 @@
             android:name=".BleScanReceiver"
             android:enabled="true"
             android:exported="false">
+            <intent-filter>
+                <action android:name="com.example.backgroundtest.ACTION_BLE_SCAN_RESULT" />
+            </intent-filter>
         </receiver>
 
         <service
