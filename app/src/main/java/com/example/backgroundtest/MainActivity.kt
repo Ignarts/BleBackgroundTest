@@ -21,17 +21,15 @@ import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.runtime.mutableStateListOf
-import androidx.compose.runtime.remember
 import androidx.core.content.ContextCompat
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import com.example.backgroundtest.ui.theme.BackgroundTestTheme
 
-// Main activity for the app
 @SuppressLint("MissingPermission")
 class MainActivity : ComponentActivity() {
-    // Bluetooth adapter and scanner
+
     private val bluetoothAdapter: BluetoothAdapter? by lazy {
         (getSystemService(Context.BLUETOOTH_SERVICE) as BluetoothManager).adapter
     }
@@ -41,7 +39,6 @@ class MainActivity : ComponentActivity() {
     private var isScanning = false
     private val SCAN_PERIOD: Long = 10000
 
-    // Scan function to find BLE devices
     private val scanCallback = object : ScanCallback() {
         override fun onScanResult(callbackType: Int, result: ScanResult) {
             super.onScanResult(callbackType, result)
@@ -56,29 +53,26 @@ class MainActivity : ComponentActivity() {
         }
 
         override fun onScanFailed(errorCode: Int) {
-            Log.e("BleScanner", "El escaneo BLE falló con código: $errorCode")
+            Log.e("BleScanner", "Scan failed with code: $errorCode")
         }
     }
 
-    // Activity result launcher for handling Bluetooth permissions
     private val requestPermissionsLauncher = registerForActivityResult(ActivityResultContracts.RequestMultiplePermissions()) { permissions ->
         if (permissions.values.all { it }) {
             scanLeDevice()
         } else {
-            Log.w("Permissions", "No se concedieron todos los permisos.")
+            Log.w("Permissions", "Not all permissions were granted.")
         }
     }
 
-    // Activity result launcher for enabling Bluetooth
     private val enableBluetoothLauncher = registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
         if (result.resultCode == Activity.RESULT_OK) {
             scanLeDevice()
         } else {
-            Log.w("Bluetooth", "El usuario no habilitó Bluetooth.")
+            Log.w("Bluetooth", "Bluetooth was not enabled by the user.")
         }
     }
 
-    // Activity creation
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContent {
@@ -90,13 +84,15 @@ class MainActivity : ComponentActivity() {
                         DeviceListScreen(
                             devices = discoveredDevices,
                             onDeviceClick = { device ->
-                                val intent = Intent(this@MainActivity, BleConnectionService::class.java).apply {
+                                val serviceIntent = Intent(this@MainActivity, BleConnectionService::class.java).apply {
                                     putExtra("DEVICE_ADDRESS", device.address)
+                                    action = BleConnectionService.ACTION_CONNECT
                                 }
+
                                 if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-                                    startForegroundService(intent)
+                                    startForegroundService(serviceIntent)
                                 } else {
-                                    startService(intent)
+                                    startService(serviceIntent)
                                 }
                                 navController.navigate("device_detail/${device.address}/${device.name}")
                             },
@@ -108,8 +104,13 @@ class MainActivity : ComponentActivity() {
                         DeviceDetailScreen(
                             deviceName = deviceName,
                             onDisconnect = {
-                                val intent = Intent(this@MainActivity, BleConnectionService::class.java)
-                                stopService(intent)
+                                // 1. Explicitly stop the background scan to prevent reconnection.
+                                BleScanManager.stopBackgroundScan(this@MainActivity)
+
+                                // 2. Stop the connection service.
+                                val serviceIntent = Intent(this@MainActivity, BleConnectionService::class.java)
+                                stopService(serviceIntent)
+
                                 navController.popBackStack()
                             }
                         )
@@ -119,7 +120,6 @@ class MainActivity : ComponentActivity() {
         }
     }
 
-    // Start scanning for BLE devices
     private fun scanLeDevice() {
         if (bluetoothAdapter?.isEnabled == false) {
             val enableBtIntent = Intent(BluetoothAdapter.ACTION_REQUEST_ENABLE)
@@ -134,7 +134,6 @@ class MainActivity : ComponentActivity() {
         }
     }
 
-    // Check for required permissions
     private fun hasRequiredPermissions(): Boolean {
         val requiredPermissions = mutableListOf<String>()
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
@@ -153,7 +152,6 @@ class MainActivity : ComponentActivity() {
         }
     }
 
-    // Request all necessary permissions
     private fun requestAppPermissions() {
         val permissionsToRequest = mutableListOf<String>()
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {

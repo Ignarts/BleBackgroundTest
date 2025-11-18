@@ -8,155 +8,118 @@ import android.app.Service
 import android.bluetooth.*
 import android.content.Context
 import android.content.Intent
+import android.os.Binder
 import android.os.Build
 import android.os.IBinder
 import android.util.Log
 import androidx.core.app.NotificationCompat
 
-@SuppressLint("MissingPermission")
+@SuppressLint("MissingPermission") // Ensure you have permissions in the Manifest
 class BleConnectionService : Service() {
 
-    // --- Service Properties ---
-
-    private val bluetoothAdapter: BluetoothAdapter by lazy {
-        (getSystemService(Context.BLUETOOTH_SERVICE) as BluetoothManager).adapter
-    }
-    private val notificationManager by lazy {
-        getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
-    }
-
+    private val binder = LocalBinder()
     private var bluetoothGatt: BluetoothGatt? = null
+    private lateinit var notificationManager: NotificationManager
     private var deviceAddress: String? = null
 
-    // --- Bluetooth Callbacks ---
-
-    /**
-     * Main callback that manages the lifecycle events of the GATT connection.
-     */
-    private val gattCallback = object : BluetoothGattCallback() {
-        override fun onConnectionStateChange(gatt: BluetoothGatt, status: Int, newState: Int) {
-            when (newState) {
-                BluetoothAdapter.STATE_CONNECTED -> {
-                    Log.i("BleService", "Successfully connected to device: ${gatt.device.address}")
-                    ConnectionManager.updateState(ConnectionState.CONNECTED)
-
-                    // When connected, update the notification to reflect the "Connected" state.
-                    updateNotification(
-                        "Device Connected",
-                        "Active connection with ${gatt.device.address}"
-                    )
-                }
-                BluetoothAdapter.STATE_DISCONNECTED -> {
-                    Log.w("BleService", "Disconnected from device: ${gatt.device.address}. Status: $status")
-                    ConnectionManager.updateState(ConnectionState.DISCONNECTED)
-
-                    // Update notification to reflect "Reconnecting" state
-                    updateNotification(
-                        "Device Disconnected",
-                        "Attempting to reconnect..."
-                    )
-
-                    // IMPORTANT: Instead of closing, we tell the system to try to reconnect automatically.
-                    // The OS will listen for the device's advertisement in the background.
-                    // This requires the GATT object to have been created with `autoConnect = true`.
-                    gatt.connect()
-                }
-            }
-        }
+    companion object {
+        private const val NOTIFICATION_CHANNEL_ID = "BleConnectionChannel"
+        private const val NOTIFICATION_ID = 101
+        const val ACTION_CONNECT = "com.example.backgroundtest.ACTION_CONNECT"
     }
 
-    // --- Service Lifecycle ---
-
-    override fun onBind(intent: Intent): IBinder? = null // We don't use binding, it's a started service.
+    override fun onCreate() {
+        super.onCreate()
+        notificationManager = getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
+        createNotificationChannel()
+    }
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
-        val addressFromIntent = intent?.getStringExtra("DEVICE_ADDRESS")
+        if (intent?.action == ACTION_CONNECT) {
+            deviceAddress = intent.getStringExtra("DEVICE_ADDRESS")
 
-        if (addressFromIntent != null) {
-            // If it's a new device, close the old connection and start a new one.
-            if (deviceAddress != null && deviceAddress != addressFromIntent) {
-                bluetoothGatt?.close()
-                bluetoothGatt = null
+            if (deviceAddress == null) {
+                Log.w("BleService", "No address provided. Stopping service.")
+                stopSelf()
+                return START_NOT_STICKY
             }
-            deviceAddress = addressFromIntent
 
-            // Promote the service to foreground and start the connection.
-            val notification = createNotification(
-                "Connecting...",
-                "Establishing connection with $deviceAddress"
-            )
-            startForeground(SERVICE_NOTIFICATION_ID, notification)
+            startForeground(NOTIFICATION_ID, createNotification("Connecting...", "Connecting to $deviceAddress"))
+            Log.d("BleService", "Attempting to connect to $deviceAddress")
 
-            connectToDevice()
+            // Stop any passive scan that might be active, since we are now attempting a direct connection.
+            BleScanManager.stopBackgroundScan(this)
+
+            val bluetoothManager = getSystemService(Context.BLUETOOTH_SERVICE) as BluetoothManager
+            val device = bluetoothManager.adapter.getRemoteDevice(deviceAddress)
+
+            bluetoothGatt?.close()
+            bluetoothGatt = device.connectGatt(this, false, gattCallback) // false, for direct connection attempt
         }
 
-        // START_STICKY: If the system kills the service, it will try to recreate it.
         return START_STICKY
     }
 
     override fun onDestroy() {
         super.onDestroy()
-        Log.i("BleService", "Service destroyed. Cleaning up all BLE resources.")
-        // Stop the foreground service and remove the notification.
-        stopForeground(true)
-        // Ensure everything is stopped and cleaned up correctly.
-        ConnectionManager.updateState(ConnectionState.DISCONNECTING)
+        Log.d("BleService", "Service destroyed. Cleaning up GATT.")
         bluetoothGatt?.close()
         bluetoothGatt = null
-        ConnectionManager.updateState(ConnectionState.DISCONNECTED)
+        stopForeground(true)
     }
 
-    // --- Connection Logic ---
-
-    /**
-     * Initiates a new GATT connection with the device.
-     */
-    private fun connectToDevice() {
-        deviceAddress?.let { address ->
-            ConnectionManager.updateState(ConnectionState.CONNECTING)
-
-            try {
-                val device: BluetoothDevice = bluetoothAdapter.getRemoteDevice(address)
-                // Close any previous instance to avoid resource leaks.
-                bluetoothGatt?.close()
-                // Create a new GATT connection using autoConnect = true for robust reconnection.
-                bluetoothGatt = device.connectGatt(this, true, gattCallback)
-            } catch (e: IllegalArgumentException) {
-                Log.e("BleService", "The MAC address '$address' is not valid.")
-                ConnectionManager.updateState(ConnectionState.DISCONNECTED)
-                stopSelf() // Stop the service if the address is incorrect.
+    private val gattCallback = object : BluetoothGattCallback() {
+        override fun onConnectionStateChange(gatt: BluetoothGatt, status: Int, newState: Int) {
+            deviceAddress = gatt.device.address // Make sure we have the address for reconnection
+            when (newState) {
+                BluetoothProfile.STATE_CONNECTED -> {
+                    Log.i("GattCallback", "Connected to device: ${gatt.device.address}")
+                    ConnectionManager.updateState(ConnectionState.CONNECTED)
+                    updateNotification("Device Connected", "Active connection with ${gatt.device.name ?: gatt.device.address}")
+                    // Stop any background scan that might be running
+                    BleScanManager.stopBackgroundScan(this@BleConnectionService)
+                    gatt.discoverServices()
+                }
+                BluetoothProfile.STATE_DISCONNECTED -> {
+                    Log.w("GattCallback", "Disconnected from device: ${gatt.device.address}")
+                    ConnectionManager.updateState(ConnectionState.DISCONNECTED)
+                    // 1. Delegate the search to the OS.
+                    deviceAddress?.let { BleScanManager.startBackgroundScan(this@BleConnectionService, it) }
+                    // 2. Stop the service to save battery. The BroadcastReceiver will restart it.
+                    stopSelf()
+                }
             }
         }
     }
 
-    // --- Foreground Service Notification ---
-
-    private fun updateNotification(title: String, text: String) {
-        val notification = createNotification(title, text)
-        notificationManager.notify(SERVICE_NOTIFICATION_ID, notification)
-    }
-
-    /**
-     * Creates the persistent notification required for a foreground service.
-     */
-    private fun createNotification(title: String, text: String): Notification {
-        val channelId = "ble_connection_channel"
-        // The notification channel is mandatory from Android 8.0 (Oreo).
+    private fun createNotificationChannel() {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            val channel = NotificationChannel(channelId, "BLE Connection", NotificationManager.IMPORTANCE_DEFAULT)
-            channel.description = "Notifications for BLE connection status"
+            val name = "BLE Connection"
+            val descriptionText = "Notifications about the BLE connection status"
+            val importance = NotificationManager.IMPORTANCE_LOW
+            val channel = NotificationChannel(NOTIFICATION_CHANNEL_ID, name, importance)
             notificationManager.createNotificationChannel(channel)
         }
+    }
 
-        return NotificationCompat.Builder(this, channelId)
+    private fun createNotification(title: String, text: String): Notification {
+        val icon = R.mipmap.ic_launcher
+        return NotificationCompat.Builder(this, NOTIFICATION_CHANNEL_ID)
             .setContentTitle(title)
             .setContentText(text)
-            .setSmallIcon(R.mipmap.ic_launcher) // You should use a more suitable icon.
-            .setOngoing(true) // Makes the notification non-dismissable by the user.
+            .setSmallIcon(icon)
+            .setOngoing(true)
             .build()
     }
 
-    companion object {
-        private const val SERVICE_NOTIFICATION_ID = 1
+    private fun updateNotification(title: String, text: String) {
+        val notification = createNotification(title, text)
+        notificationManager.notify(NOTIFICATION_ID, notification)
     }
+
+    inner class LocalBinder : Binder() {
+        fun getService(): BleConnectionService = this@BleConnectionService
+    }
+
+    override fun onBind(intent: Intent?): IBinder = binder
 }

@@ -1,58 +1,35 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!--
-FICHERO: AndroidManifest.xml
-DESCRIPCIÓN: Manifiesto principal de la aplicación. Declara los componentes de la app (actividades, servicios),
-los permisos que necesita y las características de hardware que requiere.
--->
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools">
 
-    <!--
-    CARACTERÍSTICAS DE HARDWARE
-    -->
-    <!-- Declara que la app requiere hardware Bluetooth Low Energy (BLE). Si un dispositivo no tiene BLE, no podrá instalar la app desde Google Play. -->
     <uses-feature
         android:name="android.hardware.bluetooth_le"
         android:required="true" />
 
-    <!--
-    PERMISOS
-    -->
-
-    <!-- === Permisos para Servicios en Primer Plano (Foreground Services) === -->
-    <!-- Permiso general para ejecutar un servicio en primer plano. Obligatorio desde Android 9 (API 28). -->
+    <!-- Foreground Service Permissions -->
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
-    <!-- Permiso específico para servicios que interactúan con dispositivos conectados. Obligatorio en Android 14+ (API 34). -->
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE_CONNECTED_DEVICE" />
+    <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
 
-
-    <!-- === Permisos para Bluetooth en Android 12 (API 31) y SUPERIORES === -->
-    <!-- Permiso para escanear dispositivos BLE. -->
+    <!-- Bluetooth Permissions -->
     <uses-permission
         android:name="android.permission.BLUETOOTH_SCAN"
         android:usesPermissionFlags="neverForLocation"
         tools:targetApi="s" />
-    <!-- Permiso para conectar con dispositivos BLE ya emparejados o escaneados. -->
     <uses-permission android:name="android.permission.BLUETOOTH_CONNECT" />
-
-    <!-- === Permisos para Bluetooth en Android 11 (API 30) e INFERIORES === -->
-    <!-- Permiso general de Bluetooth. -->
     <uses-permission
         android:name="android.permission.BLUETOOTH"
         android:maxSdkVersion="30" />
-    <!-- Permiso para realizar acciones de administración de Bluetooth, como iniciar el escaneo. -->
     <uses-permission
         android:name="android.permission.BLUETOOTH_ADMIN"
         android:maxSdkVersion="30" />
-    <!-- El escaneo BLE en estas versiones requería acceso a la ubicación. `maxSdkVersion` asegura que solo se pida en versiones antiguas. -->
     <uses-permission
         android:name="android.permission.ACCESS_FINE_LOCATION"
         android:maxSdkVersion="30" />
+    <uses-permission android:name="android.permission.ACCESS_BACKGROUND_LOCATION" />
 
-    <!--
-    DEFINICIÓN DE LA APLICACIÓN Y SUS COMPONENTES
-    -->
-    <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
+
+
     <application
         android:allowBackup="true"
         android:dataExtractionRules="@xml/data_extraction_rules"
@@ -63,20 +40,23 @@ los permisos que necesita y las características de hardware que requiere.
         android:supportsRtl="true"
         android:theme="@style/Theme.BackgroundTest">
 
-        <!-- Declaración del servicio de conexión BLE. -->
+        <receiver
+            android:name=".BleScanReceiver"
+            android:enabled="true"
+            android:exported="false">
+        </receiver>
+
         <service
             android:name=".BleConnectionService"
             android:enabled="true"
             android:exported="false"
             android:foregroundServiceType="connectedDevice" />
 
-        <!-- Declaración de la Actividad Principal. -->
         <activity
             android:name=".MainActivity"
             android:exported="true"
             android:label="@string/app_name"
             android:theme="@style/Theme.BackgroundTest">
-            <!-- El `intent-filter` la marca como el punto de entrada principal de la aplicación. -->
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
                 <category android:name="android.intent.category.LAUNCHER" />
