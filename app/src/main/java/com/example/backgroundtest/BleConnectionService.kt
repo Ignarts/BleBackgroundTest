@@ -5,7 +5,10 @@ import android.app.Notification
 import android.app.NotificationChannel
 import android.app.NotificationManager
 import android.app.Service
+import android.app.job.JobInfo
+import android.app.job.JobScheduler
 import android.bluetooth.*
+import android.content.ComponentName
 import android.content.Context
 import android.content.Intent
 import android.os.Build
@@ -23,6 +26,9 @@ class BleConnectionService : Service() {
     }
     private val notificationManager by lazy {
         getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
+    }
+    private val jobScheduler by lazy {
+        getSystemService(Context.JOB_SCHEDULER_SERVICE) as JobScheduler
     }
 
     private var bluetoothGatt: BluetoothGatt? = null
@@ -80,6 +86,9 @@ class BleConnectionService : Service() {
             }
             deviceAddress = addressFromIntent
 
+            // Store device address in SharedPreferences for JobService recovery
+            saveDeviceAddress(addressFromIntent)
+
             // Promote the service to foreground and start the connection.
             val notification = createNotification(
                 "Connecting...",
@@ -88,6 +97,7 @@ class BleConnectionService : Service() {
             startForeground(SERVICE_NOTIFICATION_ID, notification)
 
             connectToDevice()
+            scheduleNotificationWatcher()
         }
 
         // START_STICKY: If the system kills the service, it will try to recreate it.
@@ -97,8 +107,17 @@ class BleConnectionService : Service() {
     override fun onDestroy() {
         super.onDestroy()
         Log.i("BleService", "Service destroyed. Cleaning up all BLE resources.")
+        // Cancel the notification watcher job
+        cancelNotificationWatcher()
+        // Clear stored device address
+        clearDeviceAddress()
         // Stop the foreground service and remove the notification.
-        stopForeground(true)
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
+            stopForeground(STOP_FOREGROUND_REMOVE)
+        } else {
+            @Suppress("DEPRECATION")
+            stopForeground(true)
+        }
         // Ensure everything is stopped and cleaned up correctly.
         ConnectionManager.updateState(ConnectionState.DISCONNECTING)
         bluetoothGatt?.close()
@@ -156,7 +175,60 @@ class BleConnectionService : Service() {
             .build()
     }
 
+    // --- JobScheduler for Notification Monitoring ---
+
+    /**
+     * Schedules a periodic job to check if the notification is still active every 15 minutes.
+     * JobScheduler is more resilient than coroutines and survives app restarts.
+     * Note: 15 minutes is the minimum interval allowed by Android for periodic jobs.
+     */
+    private fun scheduleNotificationWatcher() {
+        val componentName = ComponentName(this, NotificationWatcherJob::class.java)
+        val jobInfo = JobInfo.Builder(NotificationWatcherJob.JOB_ID, componentName)
+            .setPeriodic(15 * 60 * 1000) // Run every 15 minutes (minimum allowed by Android)
+            .setPersisted(true) // Persist across device reboots
+            .setRequiredNetworkType(JobInfo.NETWORK_TYPE_NONE) // No network required
+            .build()
+
+        val result = jobScheduler.schedule(jobInfo)
+        if (result == JobScheduler.RESULT_SUCCESS) {
+            Log.i("BleService", "Notification watcher job scheduled successfully (every 15 minutes)")
+        } else {
+            Log.e("BleService", "Failed to schedule notification watcher job")
+        }
+    }
+
+    /**
+     * Cancels the notification watcher job when the service is destroyed.
+     */
+    private fun cancelNotificationWatcher() {
+        jobScheduler.cancel(NotificationWatcherJob.JOB_ID)
+        Log.i("BleService", "Notification watcher job cancelled")
+    }
+
+    /**
+     * Saves the device address to SharedPreferences so the JobService can recover it.
+     */
+    private fun saveDeviceAddress(address: String) {
+        getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
+            .edit()
+            .putString(KEY_DEVICE_ADDRESS, address)
+            .apply()
+    }
+
+    /**
+     * Clears the device address from SharedPreferences when service is destroyed.
+     */
+    private fun clearDeviceAddress() {
+        getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
+            .edit()
+            .remove(KEY_DEVICE_ADDRESS)
+            .apply()
+    }
+
     companion object {
-        private const val SERVICE_NOTIFICATION_ID = 1
+        const val SERVICE_NOTIFICATION_ID = 1
+        private const val PREFS_NAME = "BleConnectionPrefs"
+        private const val KEY_DEVICE_ADDRESS = "device_address"
     }
 }

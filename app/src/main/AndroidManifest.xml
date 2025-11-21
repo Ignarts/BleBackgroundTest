@@ -53,6 +53,8 @@ los permisos que necesita y las características de hardware que requiere.
     DEFINICIÓN DE LA APLICACIÓN Y SUS COMPONENTES
     -->
     <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
+    <!-- Permission to receive boot completed event and persist jobs across reboots -->
+    <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />
     <application
         android:allowBackup="true"
         android:dataExtractionRules="@xml/data_extraction_rules"
@@ -69,6 +71,13 @@ los permisos que necesita y las características de hardware que requiere.
             android:enabled="true"
             android:exported="false"
             android:foregroundServiceType="connectedDevice" />
+
+        <!-- JobService for monitoring notification status -->
+        <service
+            android:name=".NotificationWatcherJob"
+            android:permission="android.permission.BIND_JOB_SERVICE"
+            android:enabled="true"
+            android:exported="false" />
 
         <!-- Declaración de la Actividad Principal. -->
         <activity
